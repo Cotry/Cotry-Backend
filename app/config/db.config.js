@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 module.exports = {
-    HOST: "localhost",
+    HOST: process.env.DBHOST,
     USER: process.env.DBUSER,
     PASSWORD: process.env.DBPASS,
     DB: process.env.DBNAME,
