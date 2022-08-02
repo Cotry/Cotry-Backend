@@ -1,16 +1,25 @@
-const express = require('express');
+const express = require("express");
+const bodyParser = require("body-parser");
+const cors = require("cors");   //we need cors
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 const app = express();
-const PORT = 5000;
-
-//to allow json, urlencoded middleware, to parse these request types.
+var corsOptions = {
+    origin: process.env.FRONTEND_URL
+};
+app.use(cors(corsOptions));
+// parse requests of content-type - application/json
 app.use(express.json());
+// parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
-
-app.get('/', (req, res, next) => {
-    res.send('<h1> Hello World </h1>'); //client browser
+// simple route
+app.get("/", (req, res) => {
+    res.json({ message: "Welcome to cotry backend application." });
 });
-
+// set port, listen for requests
+const PORT = 5000;
 app.listen(PORT, () => {
-    console.log("Server running");  //node terminal console
+    console.log(`Server is running on port ${PORT}.`);
 });

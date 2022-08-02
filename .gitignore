@@ -36,10 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
-.env 
+.env
 artifacts
-cache 
-coverage.json 
+cache
+coverage.json
 
 front-end/node_modules
 frp
