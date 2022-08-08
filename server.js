@@ -18,15 +18,15 @@ app.use(express.urlencoded({ extended: true }));   /* bodyParser.urlencoded() is
 
 const db = require("./app/models");
 db.sequelize.sync();
-// // drop the table if it already exists
+// drop the table if it already exists - for development only
 // db.sequelize.sync({ force: true }).then(() => {
 //   console.log("Drop and re-sync db.");
 // });
 
 // simple route
-app.get("/", (req, res) => {
-  res.json({ message: "Welcome to Cotry Backend application." });
-});
+// app.get("/", (req, res) => {
+//   res.json({ message: "Welcome to Cotry Backend application." });
+// });
 
 require("./app/routes/tutorial.routes")(app);
 
