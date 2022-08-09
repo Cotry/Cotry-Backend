@@ -1,11 +1,11 @@
 const db = require("../models");
-const Tutorial = db.tutorials;
+const User = db.users;
 const Op = db.Sequelize.Op;
 
 // Create and Save a new Tutorial
 exports.create = (req, res) => {
   // Validate request
-  if (!req.body.title) {
+  if (!req.body.userName) {
     res.status(400).send({
       message: "Content can not be empty!"
     });
@@ -13,14 +13,17 @@ exports.create = (req, res) => {
   }
 
   // Create a Tutorial
-  const tutorial = {
-    title: req.body.title,
-    description: req.body.description,
-    published: req.body.published ? req.body.published : false
+  const user = {
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    userName: req.body.userName,
+    walletAddress: req.body.walletAddress,
+    walletType: req.body.walletType,
+    walletBalance: req.body.walletBalance ? Number(req.body.walletBalance) : null,
   };
 
   // Save Tutorial in the database
-  Tutorial.create(tutorial)
+  User.create(user)
     .then(data => {
       res.send(data);
     })
@@ -34,10 +37,10 @@ exports.create = (req, res) => {
 
 // Retrieve all Tutorials from the database.
 exports.findAll = (req, res) => {
-  const title = req.query.title;
-  var condition = title ? { title: { [Op.iLike]: `%${title}%` } } : null;
+  const userName = req.query.userName;
+  var condition = userName ? { userName: { [Op.iLike]: `%${userName}%` } } : null;
 
-  Tutorial.findAll({ where: condition })
+  User.findAll({ where: condition })
     .then(data => {
       res.send(data);
     })
@@ -53,7 +56,7 @@ exports.findAll = (req, res) => {
 exports.findOne = (req, res) => {
   const id = req.params.id;
 
-  Tutorial.findByPk(id)
+  User.findByPk(id)
     .then(data => {
       if (data) {
         res.send(data);
@@ -74,17 +77,17 @@ exports.findOne = (req, res) => {
 exports.update = (req, res) => {
   const id = req.params.id;
 
-  Tutorial.update(req.body, {
+  User.update(req.body, {
     where: { id: id }
   })
     .then(num => {
       if (num == 1) {
         res.send({
-          message: "Tutorial was updated successfully."
+          message: "User was updated successfully."
         });
       } else {
         res.send({
-          message: `Cannot update Tutorial with id=${id}. Maybe Tutorial was not found or req.body is empty!`
+          message: `Cannot update User with id=${id}. Maybe User was not found or req.body is empty!`
         });
       }
     })
@@ -99,7 +102,7 @@ exports.update = (req, res) => {
 exports.delete = (req, res) => {
   const id = req.params.id;
 
-  Tutorial.destroy({
+  User.destroy({
     where: { id: id }
   })
     .then(num => {
@@ -109,7 +112,7 @@ exports.delete = (req, res) => {
         });
       } else {
         res.send({
-          message: `Cannot delete Tutorial with id=${id}. Maybe Tutorial was not found!`
+          message: `Cannot delete User with id=${id}. Maybe User was not found!`
         });
       }
     })
@@ -122,12 +125,12 @@ exports.delete = (req, res) => {
 
 // Delete all Tutorials from the database.
 exports.deleteAll = (req, res) => {
-  Tutorial.destroy({
+  User.destroy({
     where: {},
     truncate: false
   })
     .then(nums => {
-      res.send({ message: `${nums} Tutorials were deleted successfully!` });
+      res.send({ message: `${nums} Users were deleted successfully!` });
     })
     .catch(err => {
       res.status(500).send({
@@ -139,7 +142,7 @@ exports.deleteAll = (req, res) => {
 
 // find all published Tutorial
 exports.findAllPublished = (req, res) => {
-  Tutorial.findAll({ where: { published: true } })
+  User.findAll({ where: { published: true } })
     .then(data => {
       res.send(data);
     })
