@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  deployment:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    ports:
+      - "5000:5000"
+    # the advantage of this mapping is that, when you update source code locally,
+    # your container will get the updates automaitcally.
+    volumes:
+      - .:/app
+      - /app/node_modules
