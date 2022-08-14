@@ -4,11 +4,28 @@ const cors = require("cors");
 
 const app = express();
 
+var corsWhitelist = ['https://cotry.club', 'https://www.cotry.club', 'http://localhost:3000'];
+
 var corsOptions = {
-  origin: process.env.FRONTEND_URL
+  origin: corsWhitelist,
+  optionsSuccessStatus: 200 // For legacy browser support
 };
 
 app.use(cors(corsOptions));
+
+
+// var corsOptions = {
+//   origin: function (origin, callback) {
+//     if (corsWhitelist.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   }
+// };
+
+// app.use(cors(corsOptions));
+
 
 // parse requests of content-type - application/json
 app.use(express.json());  /* bodyParser.json() is deprecated */
