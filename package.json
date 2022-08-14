@@ -1,4 +1,7 @@
 {
+  "name": "cotry-backend",
+  "version": "0.1.0",
+  "private": true,
   "dependencies": {
     "body-parser": "^1.20.0",
     "cors": "^2.8.5",
@@ -6,6 +9,10 @@
     "pg": "^8.7.3",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.21.3"
+  },
+  "engines": {
+    "node": "16.16.0",
+    "npm": "8.11.0"
   },
   "devDependencies": {
     "dotenv": "^16.0.1"
