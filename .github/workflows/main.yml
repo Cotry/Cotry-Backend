@@ -31,8 +31,8 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: Cotry-Frontend-Server
-          environment_name: Cotryfrontendserver-env
-          version_label: "the-cotry-frontend-deployment-${{ steps.format-time.outputs.replaced }}"
+          application_name: Cotry-Backend-Server
+          environment_name: Cotrybackendserver-env
+          version_label: "the-cotry-backend-deployment-${{ steps.format-time.outputs.replaced }}"
           region: us-east-1
           deployment_package: deploy.zip
