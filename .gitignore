@@ -27,6 +27,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# .env
+
 # local env files
 .env.local
 .env.development.local
@@ -36,7 +38,6 @@ yarn-error.log*
 # vercel
 .vercel
 
-.env
 artifacts
 cache
 coverage.json

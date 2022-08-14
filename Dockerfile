@@ -18,4 +18,4 @@ COPY --chown=node:node . .
 USER node
 
 # on the "/app" run "npm run start"
-CMD ["npm", "run", "start" ]
+CMD ["npm", "run","start" ]
