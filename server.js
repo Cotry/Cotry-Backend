@@ -13,7 +13,7 @@ var corsOptions = {
 
 app.use(cors(corsOptions));
 
-
+// Advance CORS blocking for Postman and other proxies.
 // var corsOptions = {
 //   origin: function (origin, callback) {
 //     if (corsWhitelist.indexOf(origin) !== -1) {
