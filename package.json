@@ -2,9 +2,6 @@
   "name": "cotry-backend",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "start": "node server.js"
-  },
   "dependencies": {
     "body-parser": "^1.20.0",
     "cors": "^2.8.5",

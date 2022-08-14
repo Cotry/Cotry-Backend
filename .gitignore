@@ -28,7 +28,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # focused
-*/certs/*
+/certs/*
 .env
 
 # local env files
