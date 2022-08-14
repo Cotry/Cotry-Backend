@@ -9,7 +9,8 @@
     "body-parser": "^1.20.0",
     "cors": "^2.8.5",
     "express": "^4.18.1",
-    "nodemon": "^2.0.19",
+    "fs": "^0.0.1-security",
+    "https": "^1.0.0",
     "pg": "^8.7.3",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.21.3"

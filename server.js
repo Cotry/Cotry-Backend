@@ -1,6 +1,15 @@
 const express = require("express");
 // const bodyParser = require("body-parser"); /* deprecated */
+const https = require('https');
+const fs = require('fs');
 const cors = require("cors");
+
+var key = fs.readFileSync('./certs/selfsigned.key');
+var cert = fs.readFileSync('./certs/selfsigned.crt');
+var options = {
+  key: key,
+  cert: cert
+};
 
 const app = express();
 
@@ -48,8 +57,15 @@ db.sequelize.sync({ force: true }).then(() => {
 
 require("./app/routes/user.routes")(app);
 
-// set port, listen for requests
-const PORT = process.env.APPPORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
+// // set port, listen for requests
+// const PORT = process.env.APPPORT || 5000;
+// app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}.`);
+// });
+
+//https server
+const PORT = process.env.APPPORT || 5000;
+var server = https.createServer(options, app);
+server.listen(PORT, () => {
+  console.log("server starting on port : " + PORT);
 });
