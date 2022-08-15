@@ -7,7 +7,7 @@ module.exports = app => {
   router.post("/user/create", users.create);
 
   // Retrieve a single User with its wallet address
-  router.post("/user/find", users.findOne);
+  router.post("/user/query", users.findOne);
 
   // Update a Tutorial with its wallet address (wallet address cant be updated)
   router.post("/user/update", users.update);
