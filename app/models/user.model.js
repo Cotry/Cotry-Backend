@@ -5,7 +5,13 @@ module.exports = (sequelize, Sequelize) => {
       allowNull: false
     },
     lastName: {
-      type: Sequelize.STRING
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    userName: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      unique: true
     },
     walletAddress: {
       type: Sequelize.STRING,
@@ -13,17 +19,14 @@ module.exports = (sequelize, Sequelize) => {
       unique: true
     },
     walletType: {
-      type: Sequelize.STRING
-    },
-    userName: {
       type: Sequelize.STRING,
-      unique: true,
       allowNull: false
-
     },
     walletBalance: {
-          type: Sequelize.DECIMAL(10,2),
-        }
+      type: Sequelize.STRING,
+      allowNull: false,
+      default: "0.0"
+    }
   });
   return User;
 };

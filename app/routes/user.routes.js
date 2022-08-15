@@ -25,31 +25,3 @@ module.exports = app => {
 
   app.use("/api/users", router);
 };
-
-
-
-// module.exports = app => {
-//   const users = require("../controllers/user.controller.js");
-
-//   var router = require("express").Router();
-
-//   // Create a new User
-//   router.post("/user/create", users.create);
-
-//   // Retrieve all Users
-//   router.get("/getall", users.findAll);
-
-//   // Retrieve a single user with id
-//   router.get("/user/:id", users.findOne);
-
-//   // Update a Tutorial with id
-//   router.put("/user/:id", users.update);
-
-//   // Delete a Tutorial with id
-//   router.delete("/user/:id", users.delete);
-
-//   // Delete all Tutorials
-//   router.delete("/deleteall", users.deleteAll);
-
-//   app.use("/api/users", router);
-// };
