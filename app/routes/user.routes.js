@@ -7,7 +7,7 @@ module.exports = app => {
   router.post("/", users.create);
 
   // Retrieve all Tutorials
-  router.get("/all", users.findAll);
+  router.get("/getall", users.findAll);
 
   // Retrieve all published Tutorials
   router.get("/published", users.findAllPublished);
