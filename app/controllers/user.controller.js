@@ -7,7 +7,7 @@ exports.create = (req, res) => {
   // Validate request
   if (!req.body.userName) {
     res.status(400).send({
-      message: "Content can not be empty!"
+      message: "Username can not be empty!"
     });
     return;
   }
@@ -19,20 +19,46 @@ exports.create = (req, res) => {
     userName: req.body.userName,
     walletAddress: req.body.walletAddress,
     walletType: req.body.walletType,
-    walletBalance: req.body.walletBalance ? req.body.walletBalance : null,
+    walletBalance: req.body.walletBalance,
   };
 
-  // Save Tutorial in the database
-  User.create(user)
-    .then(data => {
-      res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Tutorial."
+  //check if user exists.
+  let isAddrExists = false;
+  if (User.count({ where: { walletAddress: user.walletAddress } }) > 0) {
+    isAddrExists = true;
+  }
+
+  let isUsernameExists = false;
+  if (User.count({ where: { userName: user.userName } }) > 0) {
+    isUsernameExists = true;
+  }
+
+  // Create a User in the database
+  if (!isUsernameExists && !isAddrExists) {
+    User.create(user)
+      .then(data => {
+        res.send(data);
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while creating the User."
+        });
       });
+  } else if (!isAddrExists) {
+    res.status(500).send({
+      message: "Username already exists."
     });
+  } else if (!isUsernameExists) {
+    res.status(500).send({
+      message: "Wallet Address already exists."
+    });
+  } else {
+    res.status(500).send({
+      message: "Some error occurred while creating the User."
+    });
+  }
+
 };
 
 // Find a single Tutorial with its wallet address

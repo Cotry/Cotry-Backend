@@ -7,6 +7,7 @@ module.exports = (sequelize, Sequelize) => {
     lastName: {
       type: Sequelize.STRING,
       allowNull: true,
+      defaultValue: ""
     },
     userName: {
       type: Sequelize.STRING,
@@ -20,12 +21,13 @@ module.exports = (sequelize, Sequelize) => {
     },
     walletType: {
       type: Sequelize.STRING,
-      allowNull: false
+      allowNull: true,
+      defaultValue: "sequence"
     },
     walletBalance: {
       type: Sequelize.STRING,
       allowNull: false,
-      default: "0.0"
+      defaultValue: "0.0"
     }
   });
   return User;
