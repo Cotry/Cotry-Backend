@@ -4,12 +4,13 @@ const https = require('https');
 const fs = require('fs');
 const cors = require("cors");
 
-var key = fs.readFileSync('./certs/selfsigned.key');
-var cert = fs.readFileSync('./certs/selfsigned.crt');
-var options = {
-  key: key,
-  cert: cert
-};
+// // using Custom CA cert
+// var key = fs.readFileSync('./certs/selfsigned.key');
+// var cert = fs.readFileSync('./certs/selfsigned.crt');
+// var options = {
+//   key: key,
+//   cert: cert
+// };
 
 const app = express();
 
@@ -22,7 +23,7 @@ var corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Advance CORS blocking for Postman and other proxies.
+// // Advance CORS blocking for Postman and other proxies.
 // var corsOptions = {
 //   origin: function (origin, callback) {
 //     if (corsWhitelist.indexOf(origin) !== -1) {
@@ -32,7 +33,6 @@ app.use(cors(corsOptions));
 //     }
 //   }
 // };
-
 // app.use(cors(corsOptions));
 
 
@@ -46,26 +46,22 @@ const db = require("./app/models");
 db.sequelize.sync();
 // drop the table if it already exists - for development only
 
-
 db.sequelize.sync({ force: true }).then(() => {
   console.log("Drop and re-sync db.");
 });
-// simple route
-// app.get("/", (req, res) => {
-//   res.json({ message: "Welcome to Cotry Backend application." });
-// });
 
 require("./app/routes/user.routes")(app);
+require("./app/routes/main.routes")(app);
 
-// // set port, listen for requests
-// const PORT = process.env.APPPORT || 5000;
-// app.listen(PORT, () => {
-//   console.log(`Server is running on port ${PORT}.`);
-// });
-
-//https server
+// set port, listen for requests
 const PORT = process.env.APPPORT || 5000;
-var server = https.createServer(options, app);
-server.listen(PORT, () => {
-  console.log("server starting on port : " + PORT);
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}.`);
 });
+
+// // custom CA cert https server
+// const PORT = process.env.APPPORT || 5000;
+// var server = https.createServer(options, app);
+// server.listen(PORT, () => {
+//   console.log("server starting on port : " + PORT);
+// });
