@@ -54,7 +54,7 @@ require("./app/routes/user.routes")(app);
 require("./app/routes/main.routes")(app);
 
 // set port, listen for requests
-const PORT = process.env.APPPORT || 5000;
+const PORT = process.env.APPPORT || 80;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
