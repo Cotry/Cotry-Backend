@@ -59,6 +59,11 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
 
+// simple route for load balancer health
+app.get('/', function (req, res) {
+  res.send('Health is OK.');
+});
+
 // // custom CA cert https server
 // const PORT = process.env.APPPORT || 5000;
 // var server = https.createServer(options, app);
