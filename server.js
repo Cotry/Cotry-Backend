@@ -79,7 +79,7 @@ app.use(session({
   }),
   // Ref: https://stackoverflow.com/questions/40381401/when-to-use-saveuninitialized-and-resave-in-express-session
   // It basically means that for every request to the server, it reset the session cookie
-  resave: true,
+  resave: false,
   // True, means that Your session is only Stored into your storage, when any of the Property is modified in req.session
   saveUninitialized: true,
   cookie: {
