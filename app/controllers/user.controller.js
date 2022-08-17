@@ -4,6 +4,8 @@ const Op = db.Sequelize.Op;
 
 // Create and Save a new Tutorial
 exports.create = (req, res) => {
+  // validate JWT is not possible at this stage of user onboarding, there are other checks that validates the users.
+
   // Validate request
   if (!req.body.userName) {
     res.status(400).send({
@@ -63,6 +65,13 @@ exports.create = (req, res) => {
 
 // Find a single Tutorial with its wallet address
 exports.findOne = (req, res) => {
+  // Validate JWT
+  if (!req.valid.userName || !req.valid.walletAddress) {
+    res.status(403).send({
+      message: "Invalid JWT verification."
+    });
+  }
+
   const WALLETADDRESS = req.body.walletAddress;
 
   User.findAll({

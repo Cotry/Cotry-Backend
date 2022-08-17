@@ -1,8 +1,10 @@
 const express = require("express");
 // const bodyParser = require("body-parser"); /* deprecated */
-const https = require('https');
+const session = require('express-session');
 const fs = require('fs');
 const cors = require("cors");
+const db = require("./app/models");
+
 
 // // using Custom CA cert
 // var key = fs.readFileSync('./certs/selfsigned.key');
@@ -36,13 +38,13 @@ app.use(cors(corsOptions));
 // app.use(cors(corsOptions));
 
 
-// parse requests of content-type - application/json
+// parse requests of json content-type, so that we can use access data like req.body.jsonProperty
 app.use(express.json());  /* bodyParser.json() is deprecated */
 
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));   /* bodyParser.urlencoded() is deprecated */
 
-const db = require("./app/models");
+
 db.sequelize.sync();
 // drop the table if it already exists - for development only
 
