@@ -83,8 +83,8 @@ app.use(session({
   // True, means that Your session is only Stored into your storage, when any of the Property is modified in req.session
   saveUninitialized: true,
   cookie: {
-    httpOnly: true,
-    secure: true,
+    httpOnly: true, //Prevent javascript access to cookie
+    // secure: true, //cookie data will be sent only if connection is HTTPS
     // sameSite: true,
     maxAge: 1000 * 60 * 10 * 1 // = Time is in milliseconds for 10min
     // maxAge: 1000 * 60 * 60 * 24 // Time is in milliseconds for 1 day
