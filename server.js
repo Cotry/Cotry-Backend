@@ -74,9 +74,9 @@ app.use(session({
   //The rest will be used in verification.
   secret: process.env.SESSIONSSECRET,
   name: 'vericheck',
-  // store: new pgSession({
-  //   pool: pgPool                // Connection pool
-  // }),
+  store: new pgSession({
+    pool: pgPool                // Connection pool
+  }),
   // Ref: https://stackoverflow.com/questions/40381401/when-to-use-saveuninitialized-and-resave-in-express-session
   // It basically means that for every request to the server, it reset the session cookie
   resave: false,
@@ -85,20 +85,22 @@ app.use(session({
   cookie: {
     httpOnly: true,
     secure: true,
-    sameSite: true,
+    // sameSite: true,
     maxAge: 1000 * 60 * 10 * 1 // = Time is in milliseconds for 10min
     // maxAge: 1000 * 60 * 60 * 24 // Time is in milliseconds for 1 day
   }
 }));
 
-// add routes
-require("./app/routes/user.routes")(app);
-require("./app/routes/main.routes")(app);
-
 // simple route for load balancer health
 app.get('/', (req, res, next) => {
   res.send('Health is OK.');
 });
+
+
+// add routes
+require("./app/routes/user.routes")(app);
+require("./app/routes/main.routes")(app);
+
 
 // set port, listen for requests
 const PORT = process.env.APPPORT || 5000;
