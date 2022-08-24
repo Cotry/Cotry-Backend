@@ -1,7 +1,6 @@
 //libraries import
 const express = require("express");
 // const bodyParser = require("body-parser"); /* deprecated */
-const fs = require('fs');
 const cors = require("cors");
 const pg = require('pg');
 const session = require('express-session');
@@ -12,16 +11,7 @@ const db = require("./app/models");
 const sessions_dbConfig = require("./app/config/sessions_db.config.js");
 
 const dotenv = require("dotenv");
-
 dotenv.config();
-
-// // using Custom CA cert
-// var key = fs.readFileSync('./certs/selfsigned.key');
-// var cert = fs.readFileSync('./certs/selfsigned.crt');
-// var options = {
-//   key: key,
-//   cert: cert
-// };
 
 const app = express();
 
@@ -55,11 +45,11 @@ app.use(express.urlencoded({ extended: true }));   /* bodyParser.urlencoded() is
 
 // db = object with configured db details.
 db.sequelize.sync();
-// drop the table if it already exists - for development only
 
-db.sequelize.sync({ force: true }).then(() => {
-  console.log("Drop and re-sync db.");
-});
+// drop the table if it already exists - for development only
+// db.sequelize.sync({ force: true }).then(() => {
+//   console.log("Drop and re-sync db.");
+// });
 
 /**
  * -------------- SESSION SETUP ----------------
@@ -107,10 +97,3 @@ const PORT = process.env.APPPORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
-
-// // custom CA cert https server
-// const PORT = process.env.APPPORT || 5000;
-// var server = https.createServer(options, app);
-// server.listen(PORT, () => {
-//   console.log("server starting on port : " + PORT);
-// });

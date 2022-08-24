@@ -7,9 +7,9 @@ dotenv.config();
 exports.login = (req, res) => {
 
     // decode the JWT token and fetch the body
-    if (!req.body.walletAddress) {
+    if (!req.body.username) {
         res.status(400).send({
-            message: "Wallet Address is required!"
+            message: "Username is required!"
         });
         return;
     }
@@ -17,12 +17,10 @@ exports.login = (req, res) => {
     // validated the signed sequence message
 
     // If the code reaches here then user authentication is validated.
-    const addr = req.body.walletAddress;
     const uname = req.body.userName;
 
-    // check if wallet address and username exists.
-
-    const payload = { walletAddress: addr, userName: uname };
+    // check if and username exists.
+    const payload = { userName: uname };
     const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET); //set expiration date time.
     // res.status(200).send({
     //     message: "The wallet address " + addr + " is received."

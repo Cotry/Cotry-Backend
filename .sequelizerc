@@ -1,0 +1,9 @@
+var path = require('path');
+
+module.exports = {
+    'config': path.resolve('app', 'config', 'cotrymaster_db.config.js'),
+    //'config': path.resolve('app/config', 'cotrymaster_db.config.js'),
+    'migrations-path': path.resolve('app', 'migrations'),
+    'models-path': path.resolve('app', 'models'),
+    'seeders-path': path.resolve('app', 'seeders'),
+};
