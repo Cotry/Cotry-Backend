@@ -1,10 +1,98 @@
 const models = require("../models");  //this will be handled by ./models/index.js
 const User = models.users;
+const UserVerify = models.user_verify;
 // const Op = models.Sequelize.Op;
+const nodemailer = require("nodemailer"); //email handler
+const { v4: uuidv4 } = require("uuid");
+const bcrypt = require("bcrypt");
+
+// configure email verification
+let transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  auth: {
+    type: "OAuth2",
+    user: process.env.VERIFIER_SENDER_EMAIL,
+    clientId: '1003833138269-84uqnqvvbunk9hkfddoi6f7ro20s8ch8.apps.googleusercontent.com',
+    clientSecret: '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',
+    refreshToken: '1//04dAkG1x30wE_CgYIARAAGAQSNwF-L9IrI-3_XROLQJT2aA1dROPJyrWi5WXopRPF2Y4h75-ofUQhay42jIEpovnZ3OOvLwEiiYU',
+    accessToken: 'ya29.a0AVA9y1uBSO_wwCxnc3XXclRCvDpo9_zsxdFJpVbVMvxb9FA6O7XKJ3Hk61bTCK5lI-nlWFEmxiT3jbmFkpS_QlUFOZS_cEaJmBwmZuNbpMdX0pZLoV4VoNDM-gzkRUzQMeHn6WMWKoZiZWJIpILcKVnbB4GnaCgYKATASAQASFQE65dr866bS4vTXDtUi7ByfYjX1MQ0163'
+  }
+});
+
+//id here is the id of the "users" model
+const sendVerificationEmail = ({ id, email }, res) => {
+  const currentUrl = "http://localhost:5000/";
+
+  const uniqueString = uuidv4() + id;
+
+  //mail options
+  const mailOptions = {
+    from: process.env.VERIFIER_SENDER_EMAIL,
+    to: email,
+    subject: "Verify Your Email",
+    html: `<p>Verify your email address to complete the signup and login into your account.</p><p>This link <b>expires in 6 hours</b>.</p><p>Press <a href=${currentUrl + "api/user/verify/" + id + "/" + uniqueString}>here</a> to proceed.</p>`,
+  };
+
+  //unique string should be verified first.
+
+  //hash the uniqueString
+  const saltRounds = 10;
+  bcrypt.hash(uniqueString, saltRounds).then((hashedUniqueString) => {
+    //set values in userVerification Collection
+    UserVerify.create({
+      user_id: id,
+      unique_string: hashedUniqueString,
+      created_at: Date.now(),
+      expires_at: Date.now() + 1000 * 60 * 60 * 6,  //now + 6 hours
+    }).then(data => {
+      transporter
+        .sendMail(mailOptions)
+        .then(() => {
+          //email sent and verification record saved
+          res.json({
+            status: "PENDING",
+            message: "Verification email sent"
+          });
+        })
+        .catch(() => {
+          console.log(error);
+          res.json({
+            status: "FAILED",
+            message: "Verification email failed",
+          });
+        });
+    })
+      .catch(err => {
+        res.json({
+          status: "FAILED",
+          message:
+            "Couldn't save verification email data!" + err.message
+        });
+      });;
+  }).catch(() => {
+    res.json({
+      status: "FAILED",
+      message: "An error occured while hashing email data!",
+    });
+  });
+};
 
 // Create and Save a new Tutorial
 exports.create = async (req, res) => {
   // validate JWT is not possible at this stage of user onboarding, there are other checks that validates the users.
+
+  // //testing success
+  // transporter.verify((error, success) => {
+  //   if (error) {
+  //     console.log(error);
+  //   } else {
+  //     console.log("Ready for messages");
+  //     console.log(success);
+  //   }
+  // });
+
 
   // Validate username
   if (!req.body.username) {
@@ -55,6 +143,7 @@ exports.create = async (req, res) => {
     wallet_type: req.body.wallet_type,
     created_at: new Date(),
     updated_at: new Date(),
+    verified: false
   };
 
   let isUsernameExists = false;
@@ -66,7 +155,10 @@ exports.create = async (req, res) => {
   if (!isUsernameExists) {
     await User.create(user)
       .then(data => {
-        res.send(data);
+        // console.log(data);
+
+        //send email verification.
+        sendVerificationEmail(data, res);
       })
       .catch(err => {
         res.status(500).send({

@@ -2,9 +2,8 @@
 const {
   Model
 } = require('sequelize');
-const models = require("../models");  //this will be handled by ./models/index.js
 module.exports = (sequelize, DataTypes) => {
-  class users extends Model {
+  class user_verify extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -14,19 +13,15 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  users.init({
-    name: DataTypes.STRING,
-    email: DataTypes.STRING,
-    username: DataTypes.STRING,
-    wallet_address: DataTypes.STRING,
-    wallet_type: DataTypes.STRING,
+  user_verify.init({
+    user_id: DataTypes.INTEGER,
+    unique_string: DataTypes.STRING,
     created_at: DataTypes.DATE,
-    updated_at: DataTypes.DATE,
-    verified: DataTypes.BOOLEAN
+    expires_at: DataTypes.DATE
   }, {
     sequelize,
     timestamps: false,
-    modelName: 'users',
+    modelName: 'user_verify',
   });
-  return users;
+  return user_verify;
 };

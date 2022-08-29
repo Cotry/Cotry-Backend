@@ -1,8 +1,12 @@
 module.exports = app => {
-  const users = require("../controllers/user.controller.js");
+  const users = require("../controllers/users.controller.js");
   const validateJWT = require("../middleware/validateJWT");
 
   var router = require("express").Router();
+
+  // Verify email
+  // Session should not change once a user is verified.
+  // router.post("/user/verify", users.verifyEmail);
 
   // Create a new User
   router.post("/user/create", users.create);
