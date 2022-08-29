@@ -5,6 +5,8 @@ const UserVerify = models.user_verify;
 const nodemailer = require("nodemailer"); //email handler
 const { v4: uuidv4 } = require("uuid");
 const bcrypt = require("bcrypt");
+const dotenv = require("dotenv");
+dotenv.config();
 
 // configure email verification
 let transporter = nodemailer.createTransport({
@@ -23,7 +25,7 @@ let transporter = nodemailer.createTransport({
 
 //id here is the id of the "users" model
 const sendVerificationEmail = ({ id, email }, res) => {
-  const currentUrl = "http://localhost:5000/";
+  const currentUrl = process.env.PRODUCTIONHOSTSTRING;
 
   const uniqueString = uuidv4() + id;
 
