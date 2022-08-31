@@ -149,9 +149,9 @@ exports.create = async (req, res) => {
   };
 
   let isUsernameExists = false;
-  // if (await User.count({ where: { username: user.username } }) > 0) {
-  //   isUsernameExists = true;
-  // }
+  if (await User.count({ where: { username: user.username } }) > 0) {
+    isUsernameExists = true;
+  }
 
   // Create a User in the database
   if (!isUsernameExists) {
