@@ -1,12 +1,16 @@
-const models = require("../models");  //this will be handled by ./models/index.js
-const User = models.users;
-const UserVerify = models.user_verify;
-// const Op = models.Sequelize.Op;
 const nodemailer = require("nodemailer"); //email handler
 const { v4: uuidv4 } = require("uuid");
 const bcrypt = require("bcrypt");
+const fs = require('fs');
+const util = require('util');
+const unlinkFile = util.promisify(fs.unlink);
 const dotenv = require("dotenv");
 dotenv.config();
+//module imports
+const models = require("../models");  //this will be handled by ./models/index.js
+const User = models.users;
+const UserVerify = models.user_verify;
+const { uploadFile, getFileStream } = require('../s3');
 
 // configure email verification
 let transporter = nodemailer.createTransport({
@@ -81,6 +85,59 @@ const sendVerificationEmail = ({ id, email }, res) => {
   });
 };
 
+// Upload to S3 : actions to take after the image is uploaded in "/uploads/ folder"
+exports.profilePic = async (req, res) => {
+  const file = req.file;
+  console.log(file);
+  let result;
+  try {
+    result = await uploadFile(file);
+  } catch {
+    res.status(400).send({
+      message: "File Upload to s3 Failed."
+    });
+  }
+
+  //now delete the local copy
+  await unlinkFile(file.path);
+
+  console.log(result);
+
+  res.send({ image_path: `/api/users/images/${result.Key}` });
+};
+
+// Get from S3 : The frontend will tell backend to request S3 image and backend will fetch the image in variable and then send the data to frontend.
+exports.getProfilePic = async (req, res) => {
+  const key = req.params.key;
+  const readStream = getFileStream(key);
+
+  //mow stream this output directly to frontend request.
+
+  readStream.on('error', function (error) {
+    // Handle your error here.
+    res.status(400).send({
+      message: "Not able to find the file in S3."
+    });
+  });
+  readStream.pipe(res);
+};
+
+// Get from S3 : The frontend will tell backend to request S3 image and backend will fetch the image in variable and then send the data to frontend.
+exports.getInterestsPic = async (req, res) => {
+  const key = 'interests/' + req.params.key;
+  const readStream = getFileStream(key);
+
+  //mow stream this output directly to frontend request.
+
+  readStream.on('error', function (error) {
+    // Handle your error here.
+    res.status(400).send({
+      message: "Not able to find the interests image in S3."
+    });
+  });
+  readStream.pipe(res);
+};
+
 // Create and Save a new Tutorial
 exports.create = async (req, res) => {
   // validate JWT is not possible at this stage of user onboarding, there are other checks that validates the users.
@@ -104,13 +161,13 @@ exports.create = async (req, res) => {
     return;
   }
 
-  // Validate email
-  if (!req.body.email) {
-    res.status(400).send({
-      message: "Email can not be empty!"
-    });
-    return;
-  }
+  // // Validate email
+  // if (!req.body.email) {
+  //   res.status(400).send({
+  //     message: "Email can not be empty!"
+  //   });
+  //   return;
+  // }
 
   // // Validate name
   // if (!req.body.name) {
@@ -136,13 +193,29 @@ exports.create = async (req, res) => {
   //   return;
   // }
 
-  // Create a Tutorial
+  //validate interests
+  let arr;
+  try {
+    arr = req.body.interests.split(",");
+  } catch (err) {
+    res.status(400).send({
+      message: "Not able to prase the \"interests\" in request body. Make sure interests in comma seperate without space."
+    });
+  };
+
+  //PENDING: check if each element of arr is a interests from "interestsKey.txt" file
+
+  console.log(arr);
+
+  // Create a User
   const user = {
     name: req.body.name,
     email: req.body.email,
     username: req.body.username,
+    interests: req.body.interests,
     wallet_address: req.body.wallet_address,
     wallet_type: req.body.wallet_type,
+    profile_pic_url: req.body.profile_pic_url,
     created_at: new Date(),
     updated_at: new Date(),
     verified: false
@@ -216,6 +289,20 @@ exports.findOne = async (req, res, next) => {
 // You cannot update unique values like id, wallet address, note: username can be updated
 exports.update = async (req, res) => {
   const USERNAME = req.body.username;
+
+  //validate interests
+  let arr;
+  try {
+    arr = req.body.interests.split(",");
+  } catch (err) {
+    res.status(400).send({
+      message: "Not able to prase the \"interests\" in request body. Make sure interests in comma seperate without space."
+    });
+  };
+
+  //PENDING: check if each element of arr is a interests from "interestsKey.txt" file
+
+  console.log(arr);
 
   await User.update(req.body, {
     limit: 1,

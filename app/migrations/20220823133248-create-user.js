@@ -29,6 +29,9 @@ module.exports = {
         allowNull: false,
         unique: true
       },
+      interests: {  //comma separated without space.
+        type: Sequelize.STRING
+      },
       wallet_type: {
         type: Sequelize.STRING,
       },
