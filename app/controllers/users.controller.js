@@ -193,15 +193,21 @@ exports.create = async (req, res) => {
   //   return;
   // }
 
-  //validate interests
+  //validate interests and store the respective output.
+  let interests;
   let arr;
-  try {
-    arr = req.body.interests.split(",");
-  } catch (err) {
-    res.status(400).send({
-      message: "Not able to prase the \"interests\" in request body. Make sure interests in comma seperate without space."
-    });
-  };
+  if (req.body.interests) {
+    try {
+      interests = req.body.interests;
+      arr = req.body.interests.split(",");
+    } catch (err) {
+      res.status(400).send({
+        message: "Not able to prase the \"interests\" in request body. Make sure interests in comma separate without space."
+      });
+    };
+  } else {
+    interests = "";
+  }
 
   //PENDING: check if each element of arr is a interests from "interestsKey.txt" file
 
@@ -212,7 +218,7 @@ exports.create = async (req, res) => {
     name: req.body.name,
     email: req.body.email,
     username: req.body.username,
-    interests: req.body.interests,
+    interests: interests,
     wallet_address: req.body.wallet_address,
     wallet_type: req.body.wallet_type,
     profile_pic_url: req.body.profile_pic_url,
