@@ -22,19 +22,19 @@ module.exports = app => {
   router.get("/images/interests/:key", users.getInterestsPic);
 
   // Retrieve a single User with its wallet address
-  router.post("/user/query", validateJWT, users.findOne);
+  router.post("/user/query", users.findOne);
 
   // Update a User with its wallet address (wallet address cant be updated)
-  router.post("/user/update", validateJWT, users.update);
+  router.post("/user/update", users.update);
 
   // Delete a User with its wallet address
-  router.post("/user/delete", validateJWT, users.delete);
+  router.post("/user/delete", users.delete);
 
   // Retrieve all Users
   router.post("/getall", users.findAll); //Disable this in production or ensure proper security.
 
   // Delete all Users
-  router.post("/deleteall", validateJWT, users.deleteAll); //Disable this in production or ensure proper security.
+  router.post("/deleteall", users.deleteAll); //Disable this in production or ensure proper security.
 
   app.use("/api/users", router);
 };
