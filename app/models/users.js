@@ -20,6 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     username: DataTypes.STRING,
     interests: DataTypes.STRING,
     wallet_address: DataTypes.STRING,
+    profile_pic_url: DataTypes.STRING,
     wallet_type: DataTypes.STRING,
     created_at: DataTypes.DATE,
     updated_at: DataTypes.DATE,

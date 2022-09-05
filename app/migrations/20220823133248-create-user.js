@@ -32,6 +32,9 @@ module.exports = {
       interests: {  //comma separated without space.
         type: Sequelize.STRING
       },
+      profile_pic_url: {
+        type: Sequelize.STRING
+      },
       wallet_type: {
         type: Sequelize.STRING,
       },
