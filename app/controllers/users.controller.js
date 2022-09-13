@@ -297,14 +297,18 @@ exports.update = async (req, res) => {
   const USERNAME = req.body.username;
 
   //validate interests
+  // PENDING - input validation for security reason.
   let arr;
-  try {
-    arr = req.body.interests.split(",");
-  } catch (err) {
-    res.status(400).send({
-      message: "Not able to prase the \"interests\" in request body. Make sure interests in comma seperate without space."
-    });
-  };
+  if (req.body.interests) {
+    try {
+      arr = req.body.interests.split(",");
+    } catch (err) {
+      res.status(400).send({
+        message: "Not able to prase the \"interests\" in request body. Make sure interests in comma seperate without space."
+      });
+    };
+  }
+
 
   //PENDING: check if each element of arr is a interests from "interestsKey.txt" file
 
@@ -317,6 +321,7 @@ exports.update = async (req, res) => {
     }
   })
     .then(num => {
+      console.log(num);
       if (num == 1) {
         res.send({
           message: `User with username = ${USERNAME} was updated successfully.`

@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class user_verify extends Model {
+  class login_verify extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -13,15 +13,17 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  user_verify.init({
-    user_id: DataTypes.INTEGER,
-    unique_string: DataTypes.STRING,  //email verification
-    created_at: DataTypes.DATE,       //email verification
-    expires_at: DataTypes.DATE        //email verification
+  login_verify.init({
+    wallet_address: DataTypes.STRING,
+    session_id: DataTypes.STRING,
+    nonce: DataTypes.STRING,
+    auth_status: DataTypes.BOOLEAN,
+    created_at: DataTypes.DATE,
+    expires_at: DataTypes.DATE
   }, {
     sequelize,
     timestamps: false,
-    modelName: 'user_verify',
+    modelName: 'login_verify',
   });
-  return user_verify;
+  return login_verify;
 };

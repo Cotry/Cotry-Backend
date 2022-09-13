@@ -3,6 +3,9 @@ module.exports = app => {
 
     var router = require("express").Router();
 
+    // Prepare-login for new login request.
+    router.post("/prelogin", main.prelogin);
+
     // Create JWT session for new email
     router.post("/login", main.login);
 

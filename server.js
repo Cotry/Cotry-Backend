@@ -5,7 +5,7 @@ const cors = require("cors");
 const pg = require('pg');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
-
+var cookieParser = require('cookie-parser');
 // custom modules import
 const db = require("./app/models");
 const sessions_dbConfig = require("./app/config/sessions_db.config.js");
@@ -80,6 +80,9 @@ app.use(session({
     // maxAge: 1000 * 60 * 60 * 24 // Time is in milliseconds for 1 day
   }
 }));
+
+// parse cookie and update the request object
+app.use(cookieParser());
 
 // simple route for load balancer health
 app.get('/', (req, res, next) => {
