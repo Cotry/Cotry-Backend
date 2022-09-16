@@ -10,6 +10,7 @@
     "seed-remove": "npx sequelize-cli db:seed:all:undo:all"
   },
   "dependencies": {
+    "@sendgrid/mail": "^7.7.0",
     "aws-sdk": "^2.1208.0",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.20.0",

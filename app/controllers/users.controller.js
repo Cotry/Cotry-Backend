@@ -10,36 +10,39 @@ dotenv.config();
 const models = require("../models");  //this will be handled by ./models/index.js
 const User = models.users;
 const UserVerify = models.user_verify;
-const {uploadFileV2, uploadFile, getFileStream } = require('../s3');
+const { uploadFileV2, uploadFile, getFileStream } = require('../s3');
 
 
-// configure email verification
-let transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  auth: {
-    type: "OAuth2",
-    user: process.env.VERIFIER_SENDER_EMAIL,
-    clientId: '1003833138269-84uqnqvvbunk9hkfddoi6f7ro20s8ch8.apps.googleusercontent.com',
-    clientSecret: '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',
-    refreshToken: '1//04dAkG1x30wE_CgYIARAAGAQSNwF-L9IrI-3_XROLQJT2aA1dROPJyrWi5WXopRPF2Y4h75-ofUQhay42jIEpovnZ3OOvLwEiiYU',
-    accessToken: 'ya29.a0AVA9y1uBSO_wwCxnc3XXclRCvDpo9_zsxdFJpVbVMvxb9FA6O7XKJ3Hk61bTCK5lI-nlWFEmxiT3jbmFkpS_QlUFOZS_cEaJmBwmZuNbpMdX0pZLoV4VoNDM-gzkRUzQMeHn6WMWKoZiZWJIpILcKVnbB4GnaCgYKATASAQASFQE65dr866bS4vTXDtUi7ByfYjX1MQ0163'
-  }
-});
+// // configure email verification
+// let transporter = nodemailer.createTransport({
+//   host: 'smtp.gmail.com',
+//   port: 465,
+//   secure: true,
+//   auth: {
+//     type: "OAuth2",
+//     user: process.env.VERIFIER_SENDER_EMAIL,
+//     clientId: '1003833138269-84uqnqvvbunk9hkfddoi6f7ro20s8ch8.apps.googleusercontent.com',
+//     clientSecret: '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',
+//     refreshToken: '1//04dAkG1x30wE_CgYIARAAGAQSNwF-L9IrI-3_XROLQJT2aA1dROPJyrWi5WXopRPF2Y4h75-ofUQhay42jIEpovnZ3OOvLwEiiYU',
+//     accessToken: 'ya29.a0AVA9y1uBSO_wwCxnc3XXclRCvDpo9_zsxdFJpVbVMvxb9FA6O7XKJ3Hk61bTCK5lI-nlWFEmxiT3jbmFkpS_QlUFOZS_cEaJmBwmZuNbpMdX0pZLoV4VoNDM-gzkRUzQMeHn6WMWKoZiZWJIpILcKVnbB4GnaCgYKATASAQASFQE65dr866bS4vTXDtUi7ByfYjX1MQ0163'
+//   }
+// });
+
+const sgMail = require('@sendgrid/mail');
+sgMail.setApiKey(process.env.VERIFIER_SENDGRID_API_KEY);
 
 //id here is the id of the "users" model
 const sendVerificationEmail = ({ id, email }, res) => {
-  const currentUrl = process.env.PRODUCTIONHOSTSTRING;
+  const currentUrl = process.env.PRODUCTION_HOST_STRING;
 
   const uniqueString = uuidv4() + id;
 
   //mail options
   const mailOptions = {
-    from: process.env.VERIFIER_SENDER_EMAIL,
+    from: "takshil@cotry.club",
     to: email,
-    subject: "Verify Your Email",
-    html: `<p>Verify your email address to complete the signup and login into your account.</p><p>This link <b>expires in 6 hours</b>.</p><p>Press <a href=${currentUrl + "api/user/verify/" + id + "/" + uniqueString}>here</a> to proceed.</p>`,
+    subject: "Verify Your Cotry Account",
+    html: `<h2>Cotry Account Verification</h2><p>Verify your email address to complete the signup and login into your account.</p><p>This link <b>expires in 6 hours</b>.</p><p>Press <a href=${currentUrl + "api/user/verify/" + id + "/" + uniqueString}>here</a> to proceed.</p>`,
   };
 
   //unique string should be verified first.
@@ -48,47 +51,45 @@ const sendVerificationEmail = ({ id, email }, res) => {
   const saltRounds = 10;
   bcrypt.hash(uniqueString, saltRounds).then((hashedUniqueString) => {
     //set values in userVerification Collection
-    UserVerify.create({
-      user_id: id,
-      unique_string: hashedUniqueString,
-      created_at: Date.now(),
-      expires_at: Date.now() + 1000 * 60 * 60 * 6,  //now + 6 hours
-    }).then(data => {
-      transporter
-        .sendMail(mailOptions)
-        .then(() => {
-          //email sent and verification record saved
-          res.json({
-            status: "PENDING",
-            message: "Verification email sent"
+    UserVerify
+      .create({
+        user_id: id,
+        unique_string: hashedUniqueString,
+        created_at: Date.now(),
+        expires_at: Date.now() + 1000 * 60 * 60 * 6,  //now + 6 hours
+      })
+      .then(data => {
+        //send email for verification
+        sgMail
+          .send(mailOptions)
+          .then(() => {
+            res.json({
+              status: "PENDING",
+              message: "Verification email sent"
+            });
+          })
+          .catch((error) => {
+            console.log(error);
+            res.json({
+              status: "FAILED",
+              message: "Verification email failed",
+            });
           });
-        })
-        .catch(() => {
-          console.log(error);
-          res.json({
-            status: "FAILED",
-            message: "Verification email failed",
-          });
-        });
-    })
-      .catch(err => {
+      })
+      .catch((error) => {
+        console.log(error);
         res.json({
           status: "FAILED",
-          message:
-            "Couldn't save verification email data!" + err.message
+          message: "Not able to create User verify record.",
+          details: error
         });
-      });;
-  }).catch(() => {
-    res.json({
-      status: "FAILED",
-      message: "An error occured while hashing email data!",
-    });
+      });
   });
 };
 
 // Upload to S3 : actions to take after the image is uploaded in "/uploads/ folder"
 exports.profilePic = async (req, res) => {
-    console.log("now hitting profile pic");
+  console.log("now hitting profile pic");
   const file = req.file;
   console.log(file);
   let result;
