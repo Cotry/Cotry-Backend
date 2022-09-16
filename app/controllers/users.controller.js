@@ -10,7 +10,8 @@ dotenv.config();
 const models = require("../models");  //this will be handled by ./models/index.js
 const User = models.users;
 const UserVerify = models.user_verify;
-const { uploadFile, getFileStream } = require('../s3');
+const {uploadFileV2, uploadFile, getFileStream } = require('../s3');
+
 
 // configure email verification
 let transporter = nodemailer.createTransport({
@@ -87,6 +88,7 @@ const sendVerificationEmail = ({ id, email }, res) => {
 
 // Upload to S3 : actions to take after the image is uploaded in "/uploads/ folder"
 exports.profilePic = async (req, res) => {
+    console.log("now hitting profile pic");
   const file = req.file;
   console.log(file);
   let result;

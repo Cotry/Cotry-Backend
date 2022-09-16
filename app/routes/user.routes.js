@@ -1,9 +1,8 @@
 module.exports = app => {
   const users = require("../controllers/users.controller.js");
   const validateJWT = require("../middleware/validateJWT");
+  const {uploadFileV2,uploadFile,getFileStream} = require("../s3");
   const multer = require('multer');
-  const upload = multer({ dest: 'app/uploads/' });
-
   var router = require("express").Router();
 
   // Verify email
@@ -15,7 +14,8 @@ module.exports = app => {
 
   // Upload user profile pic and return s3 image link which only frontend server can access.
   //image will be uploaded in binary.
-  router.post("/user/image", upload.single('profile_pic'), users.profilePic);
+   router.post('/user/image', uploadFileV2, async(req, res) => {});
+
 
   router.get("/images/:key", users.getProfilePic);
 
