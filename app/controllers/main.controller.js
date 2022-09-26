@@ -6,6 +6,9 @@ const bcrypt = require("bcrypt");
 const e = require("express");
 const rs = require('jsrsasign');
 const rsu = require('jsrsasign-util');
+const Web3 = require('web3');
+// const web3 = new Web3('https://rpc.ankr.com/polygon_mumbai');
+const web3 = new Web3('http://localhost:8454');     //any RPC URL is fine for validation of signed messages.
 //module imports
 const UserVerify = models.user_verify;
 const LoginVerify = models.login_verify;
@@ -14,19 +17,15 @@ const User = models.users;
 dotenv.config();
 
 exports.prelogin = async (req, res) => {
-    //check if session is part of cookie
-    //this is already in-place, but just noted for logic purpose.
-    // if (!req.cookies.vericheck) {
-    //     //cookie does not have session ID
-    //     //send "set-cookie: vericheck SESSION_ID" along with the response
-    //     //don't send any response yet, just set cookie header.
 
-    // }
+    //check if the session id is a valid express-sessions ID.
+    //if I send an invalid session id in cookie, I get Set-Cookie header in response, this means new session ID will be assigned everytime I send invalid session id.
+    //if I send valid session id in cookie, I will not get Set-Cookie header in response, it means my current session is running valid and active.
 
     //check if wallet address (after sign in to sequence wallet) is in body
     if (!req.body.wallet_address) {
         res.status(400).send({
-            message: "Wallet address is required! Ensure user is singed-up first."
+            message: "Wallet address is required! Ensure user is singed-up to cotry first."
         });
         return;
     }
@@ -49,20 +48,26 @@ exports.prelogin = async (req, res) => {
 
     //only if user exists perform pre-login
     if (isUserExists) {
+        let nowDate = new Date();
+        let createdDate = nowDate.setHours(nowDate.getHours() + 0);
+        let expiredDate = nowDate.setHours(nowDate.getHours() + 2);
+
+        console.log("Created date is: ", createdDate);
+        console.log("Expired date is: ", expiredDate);
+
         const loginVerifyData = {
             wallet_address: req.body.wallet_address,
             nonce: generatedUniqueString,
             auth_status: false,
             session_id: req.cookies.vericheck, //sending session ID in body clear text is not a secure practice.
-            created_at: new Date(),
-            updated_at: new Date()
+            created_at: createdDate,
+            expires_at: expiredDate             //session will hard expire in 2 hours
         };
 
         await LoginVerify
             .count({ where: { wallet_address: req.body.wallet_address } })
             .then(async (count) => {
                 //YES - send response that session is already authenticated.
-
                 console.log("Count of lookup query: ", count);
 
                 if (count > 0) {
@@ -103,59 +108,128 @@ exports.prelogin = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+
+    const WALLETADDRESS = req.body.wallet_address;
+    const NONCE = req.body.nonce;
+    const SIGVAL = req.body.signature;
+    const CURRENT_SESSION_ID = req.cookies.vericheck;
+
+    //check if the session id is a valid express-sessions ID.
+    //if I send an invalid session id in cookie, I get Set-Cookie header in response, this means new session ID will be assigned everytime I send invalid session id.
+    //if I send valid session id in cookie, I will not get Set-Cookie header in response, it means my current session is running valid and active.
+
+    let loggedin = false;
+    let isexpired = false;
+    let isInvalidSession = false;
+    let error = '';
+
+    //check if user is already authenticated.
+    if (CURRENT_SESSION_ID === undefined) {
+        res.status(500).send({
+            message: "Unable to read Session_ID."
+        });
+        return;
+    } else {
+        await LoginVerify
+            .findOne({ where: { session_id: CURRENT_SESSION_ID } })
+            .then(async (entry) => {
+                if (entry !== null) {
+                    const expiryTime = entry.expires_at;
+                    // const expiryTime = new Date(entry.expires_at).valueOf();
+
+                    //if session is expired
+                    if (expiryTime < Date.now()) {
+                        // console.log("The session expire value is: ", expiryTime);
+                        // console.log("The current time value is: ", Date.now());
+                        isexpired = true;
+
+                        //remove the entry in LoginVerify
+                        await LoginVerify.destroy({ where: { session_id: CURRENT_SESSION_ID } });
+
+                    } else if (entry.auth_status) {     //if session is not expired and user is logged in.
+                        loggedin = true;
+                    }
+                } else {
+                    isInvalidSession = true;
+                }
+            })
+            .catch(async (err) => {
+                error = err;
+            });
+    }
+
+    if (error != '') {
+        res.status(500).send({
+            message:
+                error.message || "Some error occurred while querying the Login nonce record."
+        });
+        return;
+    }
+
+    if (isInvalidSession) {
+        res.status(400).send({
+            message: "User session id is not authenticated. Please visit /prelogin to initiate login process."
+        });
+        return;
+    }
+
+    if (isexpired) {
+        res.status(400).send({
+            message: "User session expired."
+        });
+        return;
+    }
+
+    if (loggedin) {
+        //refresh expiry time with 30min.
+        //PENDING
+
+        res.status(200).send({
+            message: "User is already logged in."
+        });
+        return;
+    }
+
+    //if reached here then user is not logged in.
+
     //check if all required parameters is sent.
-    if (!req.body.atTime || !req.body.wallet_address || !req.body.username || !req.body.nonce || !req.cookies.vericheck) {
+    if (!WALLETADDRESS || !SIGVAL || !NONCE) {
         res.status(400).send({
             message: "atTime, wallet_address, username, nonce (fetched from prelogin)."
         });
         return;
     }
 
-    const WALLETADDRESS = req.body.wallet_address;
-    let loggedin = false;
-
-    //check if user is already authenticated
-    await LoginVerify
-        .count({ where: { wallet_address: WALLETADDRESS } })  //PENDING - additional and of session ID
-        .then(async (count) => {
-            //PENDING - Expiry checking
-            if (count = 1) {
-                loggedin = true;
-                res.status(200).send({
-                    message: "User is already logged in."
-                });
-                return;
-            }
-        });
-
-    // //cookie session ID must be equal to body session id
-    // if (req.body.session_id != req.cookies.vericheck) {
-    //     //restart the login process
-    // }
-
     if (!loggedin) {
         //verify nonce
         await LoginVerify
-            .count({ where: { nonce: req.body.nonce } })
+            .count({ where: { nonce: NONCE } })
             .then(async (count) => {
                 if (count = 1) {
+                    // check if the nonce is created within 6 hours or not?
+                    //PENDING
+
                     //now, we can proceed to verify the signature and make the token authenticated if all good with verification.
-                    //PENDING - verify signature
-                    let wallet_address = WALLETADDRESS;
-                    let nonce = req.body.nonce;
-                    let sigVal = req.body.digital_signature;
-                    let data = wallet_address + nonce;
+                    let data = WALLETADDRESS + NONCE;
+                    let isValid = false;
 
-                    var sMsg = data;
-                    var hSig = sigVal;
-                    // let publicKey = process.env.DIGSIG_PUBLIC_KEY;  //not working
-                    let publicKey =
-                        "-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAqSwl56yKTM3NLLo+LyfE\nq3K15EnyqTLGVuwrHE2Xqg7uCitd158Dy1njLTtsv1msRktAYa/KIvfRVexWaqVI\n5ufxYj/mZX2SZ2RM7NA+zs1WoHSDPCsxqS2RBB/r4aqn3ISfnm4cf32emApDG8Xh\n9PCDIp80glkkIHxz4CmgRwF1wl7EOiou0RXGWjOfFETflN/53kQNTjUbEnEpjgAm\nHAG85IARnkE0yeZ5buxk0JzI1moyGOqBTt5eiGaFxmfpLrtKROZ/YABHWOh93s0N\nDhaY3zSZyik3P8sNbOCeefH7a9Z4hfveKgmUyLmED1wTyArNn4mBUfEN23p2YDgE\nml696WHsvQqbhF9fCUdMi0vVWaU1zsHPrw++OzWMMh0XwvyIDWhi7DZWK2FQBgcZ\nqLFyCGWElcOI47nf/sGTs7tBmkXz7riGzXqduK99wGIAceNdVq51YEtbvtOgFQvN\nb8+3B5JGgD9DNE+NTaExekHjARGMNPyMu0CnDhlfLeak+9+OJ0yvkkdMlQsb7WwL\nJgYdh7kpBOYRrbGd5yJMLnQ8Jxxn6tH1HEp8YM8Tbx4dEsQf6YnQmeHe8Okc2m+d\nnZb/ZVxteDAkPQRiizuIJ+TpBa80wLvVhLnh3eneoVBm7JSI3MZedaSNhmTwIFJD\neJtuESgtVxsQbgjC6vpVjAUCAwEAAQ==\n-----END PUBLIC KEY-----\n";
+                    const verifyAddress = await web3.eth.accounts.recover(
+                        data,
+                        SIGVAL
+                    );
 
-                    // hSig = hSig.replace(/[^0-9a-f]+/g, "");
+                    console.log("The req body address: ", WALLETADDRESS);
+                    console.log("The verified address: ", verifyAddress);
 
-                    var pubKey = rs.KEYUTIL.getKey(publicKey);
-                    var isValid = pubKey.verify(sMsg, hSig);
+                    //check digital signature verification. If not verified then return 401 not authorized.
+                    if (WALLETADDRESS != verifyAddress) {
+                        res.status(401).send({
+                            message: "Invalid User Authentication."
+                        });
+                        return;
+                    } else {
+                        isValid = true;
+                    }
 
                     // display verification result
                     if (isValid) {
@@ -181,25 +255,29 @@ exports.login = async (req, res) => {
                                 res.send({
                                     message: `User with wallet address = ${WALLETADDRESS} was authenticated successfully.`
                                 });
+                                return;
                             } else {
                                 res.send({
                                     message: `Cannot update User with wallet address = ${WALLETADDRESS}. Maybe User's address is not part of Login Verify table`
                                 });
+                                return;
                             }
                         })
                         .catch(err => {
                             res.status(500).send({
                                 message: "Error updating User with wallet address = " + WALLETADDRESS
                             });
+                            return;
                         });
 
                     //update the expiry time. every thing is directly associated with session-id, hence to logout using timeout simply expire the session.
+                    //PENDING
 
                 } else {
-                    //you need to fetch the "nonce first"
-                    res.send({
-                        message: "User has not fetched nonce. Please get it from /prelogin."
+                    res.status(400).send({
+                        message: "User has not fetched nonce. Please get it from /prelogin first."
                     });
+                    return;
                 }
             })
             .catch(async (err) => {
@@ -207,36 +285,31 @@ exports.login = async (req, res) => {
                     message:
                         err.message || "Some error occurred while querying the Login nonce record."
                 });
+                return;
             });
     }
 };
 
-// // handle generate JWT endpoint.
-// exports.login = (req, res) => {
-//     // decode the JWT token and fetch the body
-//     if (!req.body.username) {
-//         res.status(400).send({
-//             message: "Username is required!"
-//         });
-//         return;
-//     }
+exports.logout = async (req, res) => {
+    const CURRENT_SESSION_ID = req.cookies.vericheck;
 
-//     // validated the signed sequence message
-
-//     // If the code reaches here then user authentication is validated.
-//     const uname = req.body.userName;
-
-//     // check if and username exists.
-//     const payload = { userName: uname };
-//     const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET); //set expiration date time.
-//     // res.status(200).send({
-//     //     message: "The wallet address " + addr + " is received."
-//     // });
-
-//     const payloadHeader = "Bearer " + accessToken;
-//     res.set('Authorization', payloadHeader);
-//     res.send({ Status: "JWT Token is set in header." });
-// };
+    req.session.destroy(async function (err) {
+        if (err) {
+            res.status(500).send({
+                message:
+                    err.message || "Some error occurred while express-session logout."
+            });
+        } else {
+            //remove the entry in LoginVerify
+            await LoginVerify.destroy({ where: { session_id: CURRENT_SESSION_ID } });
+            res.clearCookie('vericheck');
+            res.json({
+                status: 'success',
+                message: 'User is Successfully logged out.'
+            });
+        }
+    });
+};
 
 exports.verifyemail = (req, res) => {
     let { _user_id, _unique_string } = req.params;

@@ -6,8 +6,11 @@ module.exports = app => {
     // Prepare-login for new login request.
     router.post("/prelogin", main.prelogin);
 
-    // Create JWT session for new email
+    // login using web3 digital signatures
     router.post("/login", main.login);
+
+    // logout session.
+    router.get("/logout", main.logout);
 
     // Verify email during onboarding
     router.get("/user/verify/:_user_id/:_unique_string", main.verifyemail);
