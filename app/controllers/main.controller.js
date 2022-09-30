@@ -23,6 +23,11 @@ exports.prelogin = async (req, res) => {
     let requiredSessionId = '';
     let currentNonce = '';
     let isSessionExists = false;
+    let isInvalidSession = false;
+    let isSessionExpired = false;
+    let loggedin = false;
+    let createNewNonce = false;
+    let error = '';
 
     //check if the session id is a valid express-sessions ID.
     //if I send an invalid session id in cookie, I get Set-Cookie header in response, this means new session ID will be assigned everytime I send invalid session id.
@@ -47,89 +52,137 @@ exports.prelogin = async (req, res) => {
         });
     // console.log("Is user exists: ", isUserExists);
 
-    const generatedUniqueString = uuidv4();
-
     //this requires
     // console.log(req.cookies);
 
     //only if user exists perform pre-login
     if (isUserExists) {
-        let nowDate = new Date();
-        let createdDate = nowDate.setHours(nowDate.getHours() + 0);
-        let expiredDate = nowDate.setHours(nowDate.getHours() + 2);
 
-        console.log("Created date is: ", createdDate);
-        console.log("Expired date is: ", expiredDate);
-
-        const loginVerifyData = {
-            wallet_address: WALLETADDRESS,
-            nonce: generatedUniqueString,
-            auth_status: false,
-            session_id: CURRENT_SESSION_ID, //sending session ID in body clear text is not a secure practice.
-            created_at: createdDate,
-            expires_at: expiredDate             //session will hard expire in 2 hours
-        };
-
+        //check if user entry is present in Login Verify database
         await LoginVerify
             .findOne({ where: { wallet_address: WALLETADDRESS } })
             .then(async (entry) => {
-                //YES - send response that session is already authenticated.
-                // console.log("Count of lookup query: ", count);
-                // console.log("The lookup result: ", entry);
 
-                //check if session is valid
-                if (entry) {
-                    isSessionExists = true;
+                //check if entry is there in login verify database
+                if (entry !== null) {
                     requiredSessionId = entry.session_id;
                     currentNonce = entry.nonce;
+
+                    //check if session is expired
+                    if (entry.expires_at < Date.now()) {
+                        isSessionExpired = true;
+                    }
+
+                    //if user is already logged in
+                    if (entry.auth_status && !isSessionExpired) {
+                        loggedin = true;
+                    }
+
+                    //check for invalid session will be in both /prelogin and /login endpoint
+                    if (requiredSessionId != CURRENT_SESSION_ID) {
+                        isInvalidSession = true;
+                    }
+
                 } else {
-                    //generate "unique_string" and update it in user validation database
-                    await LoginVerify
-                        .create(loginVerifyData)
-                        .then(data => {
-                            //send this unique string in body of response, and continue login process
-                            res.send({
-                                nonce: generatedUniqueString
-                            });
-                        })
-                        .catch(err => {
-                            console.log("Error is here");
-                            res.status(500).send({
-                                message: "Wallet address must be unique. the user already has an authenticated session active."
-                            });
-                        });
+                    //action to do if no entry in Login Verify database.
+                    createNewNonce = true;
                 }
             })
             .catch(async (err) => {
-                res.status(500).send({
-                    message:
-                        err.message || "Some error occurred while querying the Login Verify."
-                });
+                error = err;
             });
 
-        if (isSessionExists) {
+        //if error in querying LoginVerify table
+        if (error != '') {
+            res.status(500).send({
+                message:
+                    error.message || "Some error occurred while querying the Login nonce record."
+            });
+            return;
+        }
+
+        //if session exsits and it is an invalid session
+        if (isInvalidSession) {
+            //delete the existing entry
+            await LoginVerify.destroy({ where: { wallet_address: WALLETADDRESS } });
+
+            //no need to give this response, simply do all and share the final nonce
+            // res.status(401).send({
+            //     message: "User session is invalid now. The stale session is remove. Please preapred login using /prelogin again."
+            // });
+
+            createNewNonce = true;
+
+        }
+
+        //if already logged in
+        if (loggedin) {
+            res.send({
+                message: "User is already authenticated."
+            });
+            return;
+        }
+
+        //check session expiry
+        if (!isSessionExpired) {
+            // if session exists and not expired
+
             if (requiredSessionId == CURRENT_SESSION_ID) {
                 res.send({
-                    message: "User is already prepared for login. \n Please use the below nonce.",
+                    // message: "User is already prepared for login. \n Please use the below nonce.",
                     nonce: currentNonce
                 });
                 return;
-            } else {
-                await LoginVerify.destroy({ where: { wallet_address: WALLETADDRESS } });
-
-                res.status(400).send({
-                    message: "User session is now invalid. The stale session is removed now. please visit /prelogin to initiate login process (generate nonce again)."
-                });
             }
+        } else {    //if session expired
+            //delete the existing entry
+            await LoginVerify.destroy({ where: { wallet_address: WALLETADDRESS } });
+
+            //create a new random string
+            createNewNonce = true;
+        }
+
+        //generate a new uniques string "nonce"
+        if (createNewNonce) {
+            const generatedUniqueString = uuidv4();
+            let nowDate = new Date();
+            let createdDate = nowDate.setHours(nowDate.getHours() + 0);
+            let expiredDate = nowDate.setHours(nowDate.getHours() + 2);
+
+            // console.log("Created date is: ", createdDate);
+            // console.log("Expired date is: ", expiredDate);
+
+            const loginVerifyData = {
+                wallet_address: WALLETADDRESS,
+                nonce: generatedUniqueString,
+                auth_status: false,
+                session_id: CURRENT_SESSION_ID, //sending session ID in body clear text is not a secure practice.
+                created_at: createdDate,
+                expires_at: expiredDate             //session will hard expire in 2 hours
+            };
+
+            //generate "unique_string" and update it in user validation database
+            await LoginVerify
+                .create(loginVerifyData)
+                .then(data => {
+                    //send this unique string in body of response, and continue login process
+                    res.send({
+                        nonce: generatedUniqueString
+                    });
+                })
+                .catch(err => {
+                    console.log("Error is here");
+                    res.status(500).send({
+                        message: "Wallet address must be unique. the user already has an authenticated session active."
+                    });
+                });
         }
     } else {
-        res.send({
+        res.status(401).send({
             message: "User is not signed up with Cotry. Please sign up first."
         });
         return;
     }
-
-
 };
 
 exports.login = async (req, res) => {
@@ -146,64 +199,42 @@ exports.login = async (req, res) => {
     let loggedin = false;
     let isexpired = false;
     let isInvalidSession = false;
-    let isPrelogin = false;
-    let requiredSessionId = '';
+    let isNotPrelogin = false;
     let error = '';
 
-    //check if user is already authenticated.
+    //check if session is present in cookie
     if (CURRENT_SESSION_ID === undefined) {
         res.status(500).send({
-            message: "Unable to read Session_ID."
+            message: "Unable to read Session_ID. Make sure session_id is present in the request, postman does it automatically."
         });
         return;
     } else {
         await LoginVerify
-            .findOne({ where: { session_id: CURRENT_SESSION_ID } })
+            .findOne({ where: { wallet_address: WALLETADDRESS } })
             .then(async (entry) => {
+
+                //if a record is found then
                 if (entry !== null) {
-                    const expiryTime = entry.expires_at;
                     // const expiryTime = new Date(entry.expires_at).valueOf();
 
                     //if session is expired
-                    if (expiryTime < Date.now()) {
+                    if (entry.expires_at < Date.now()) {
                         // console.log("The session expire value is: ", expiryTime);
                         // console.log("The current time value is: ", Date.now());
                         isexpired = true;
+                    } else {
 
-                        //remove the entry in LoginVerify
-                        await LoginVerify.destroy({ where: { session_id: CURRENT_SESSION_ID } });
+                        //if session is not expired and user has entry in LoginVerify table.
 
-                    } else if (entry.auth_status) {     //if session is not expired and user is logged in.
-                        loggedin = true;
+                        //check if session id is valid
+                        if (entry.session_id != CURRENT_SESSION_ID) {
+                            //invalid / stale session
+                            isInvalidSession = true;
+                        }
+                        // else it is a valid request, so move forward to login process
                     }
                 } else {
-                    isInvalidSession = true;
-                    await LoginVerify
-                        .findOne({ where: { wallet_address: WALLETADDRESS } })
-                        .then(async (entry) => {
-
-                            //check for expired session.
-                            const expiryTime = entry.expires_at;
-                            // const expiryTime = new Date(entry.expires_at).valueOf();
-
-                            //if session is expired
-                            if (expiryTime < Date.now()) {
-                                // console.log("The session expire value is: ", expiryTime);
-                                // console.log("The current time value is: ", Date.now());
-                                isexpired = true;
-
-                                //remove the entry in LoginVerify
-                                await LoginVerify.destroy({ where: { wallet_address: WALLETADDRESS } });
-                            }
-
-                            if (entry) {
-                                requiredSessionId = entry.session_id;
-                                isPrelogin = true;
-                            }
-                        })
-                        .catch(async (err) => {
-                            error = err;
-                        });
+                    isNotPrelogin = true;
                 }
             })
             .catch(async (err) => {
@@ -220,33 +251,36 @@ exports.login = async (req, res) => {
     }
 
     if (isexpired) {
+        //remove the entry in LoginVerify table
+        await LoginVerify.destroy({ where: { wallet_address: WALLETADDRESS } });
+
         res.status(400).send({
             message: "User session expired. This stale session is removed, please visit /prelogin to initiate login process. (generate nonce again)"
         });
         return;
     }
 
-    if (isPrelogin) {
-
+    if (isInvalidSession) {
+        //remove the entry in LoginVerify table
         await LoginVerify.destroy({ where: { wallet_address: WALLETADDRESS } });
 
         res.status(400).send({
-            message: "User session id is not consistent. This stale session is removed, please visit /prelogin to initiate login process. (generate nonce again)",
-            currentSession: CURRENT_SESSION_ID,
-            requiredSession: requiredSessionId
+            message: "User session id is not authenticated. Please visit /prelogin to initiate login process. (generate nonce again)",
+            //no need to show the required session here, only during troubleshooting this may be helpful
         });
         return;
     }
 
-    if (isInvalidSession) {
+    if (isNotPrelogin) {
+        //you need to prelogin first to create the record.
         res.status(400).send({
-            message: "User session id is not authenticated. Please visit /prelogin to initiate login process. (generate nonce again)",
+            message: "User is not prepared for login. Please visit /prelogin to initiate login process. (generate nonce first)",
         });
         return;
     }
 
     if (loggedin) {
-        //refresh expiry time with 30min.
+        //update the expiry time with +30min from the current time, else it will keep on increasing indefinately.
         //PENDING
 
         res.status(200).send({
@@ -255,12 +289,12 @@ exports.login = async (req, res) => {
         return;
     }
 
-    //if reached here then user is not logged in.
+    //>>>>>>>>       if reached here then user is not logged in. So begin login process            <<<<<<<<<<<<<<
 
     //check if all required parameters is sent.
     if (!WALLETADDRESS || !SIGVAL || !NONCE) {
         res.status(400).send({
-            message: "atTime, wallet_address, username, nonce (fetched from prelogin)."
+            message: "Missing either of them - wallet_address, signature, nonce (fetched from prelogin)."
         });
         return;
     }
@@ -278,13 +312,14 @@ exports.login = async (req, res) => {
                     let data = WALLETADDRESS + NONCE;
                     let isValid = false;
 
+                    //verify signature and output will be the address who signed the message.
                     const verifyAddress = await web3.eth.accounts.recover(
                         data,
                         SIGVAL
                     );
 
-                    console.log("The req body address: ", WALLETADDRESS);
-                    console.log("The verified address: ", verifyAddress);
+                    // console.log("The req body address: ", WALLETADDRESS);
+                    // console.log("The verified address: ", verifyAddress);
 
                     //check digital signature verification. If not verified then return 401 not authorized.
                     if (WALLETADDRESS != verifyAddress) {
@@ -296,17 +331,15 @@ exports.login = async (req, res) => {
                         isValid = true;
                     }
 
-                    // display verification result
-                    if (isValid) {
-                        console.log("valid, moving further");
-                    } else {
+                    // display error if not valid
+                    if (!isValid) {
                         res.status(400).send({
                             message: "Username verification failed, please provide the valid details!"
                         });
                         return;
                     }
 
-                    //update the database that user is authenticated.
+                    //update the database that the user is authenticated after a successful verification of digital signatures.
                     await LoginVerify
                         .update({ auth_status: true }, {
                             limit: 1,
@@ -334,10 +367,6 @@ exports.login = async (req, res) => {
                             });
                             return;
                         });
-
-                    //update the expiry time. every thing is directly associated with session-id, hence to logout using timeout simply expire the session.
-                    //PENDING
-
                 } else {
                     res.status(400).send({
                         message: "User has not fetched nonce. Please get it from /prelogin first."
@@ -352,6 +381,8 @@ exports.login = async (req, res) => {
                 });
                 return;
             });
+
+        //dont add any "if" checks now, else you will get the ERROR "set header after response is sent"
     }
 };
 
