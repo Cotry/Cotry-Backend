@@ -10,6 +10,9 @@ module.exports = app => {
     router.post("/login", main.login);
 
     // logout session.
+    router.post("/usercheck", main.checkUsername);
+
+    // logout session.
     router.get("/logout", main.logout);
 
     // Verify email during onboarding
