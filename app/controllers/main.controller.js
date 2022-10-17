@@ -25,13 +25,11 @@ exports.checkUsername = async (req, res) => {
         .then(async (count) => {
             if (count > 0) {
                 res.status(400).send({
-                    //this means username already exists, choose a different one
-                    message: false
+                    message: "This useranme already exists, please choose a different username."
                 });
             } else {
                 res.send({
-                    //this means the username is ok to use.
-                    message: true
+                    message: "Username satisfies condition. Please proceed to prelogin."
                 });
             }
         })
