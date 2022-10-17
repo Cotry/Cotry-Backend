@@ -1,0 +1,16 @@
+1. Create nft data migration
+
+npx sequelize-cli model:generate --name nftdata --attributes 
+    tid:string,
+    nft_name:string,
+    creator_name:string,
+    description:string,
+    p_background:string,
+    token_standard:string,
+    last_updated:string,
+    token_id:string,
+    nft_contract_address:string,
+    current_owner:string,
+    token_uri:string,
+    u_discount:string
+
