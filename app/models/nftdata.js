@@ -14,17 +14,17 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   nftdata.init({
-    tid: DataTypes.STRING,
     nft_name: DataTypes.STRING,
     creator_name: DataTypes.STRING,
     description: DataTypes.STRING,
+    price: DataTypes.STRING,
     p_background: DataTypes.STRING,
     token_standard: DataTypes.STRING,
-    last_updated: DataTypes.STRING,
     token_id: DataTypes.STRING,
     nft_contract_address: DataTypes.STRING,
     current_owner: DataTypes.STRING,
     token_uri: DataTypes.STRING,
+    listing_status: DataTypes.BOOLEAN,
     u_discount: DataTypes.STRING
   }, {
     sequelize,

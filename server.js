@@ -93,6 +93,7 @@ app.get('/', (req, res, next) => {
 // add routes
 require("./app/routes/user.routes")(app);
 require("./app/routes/main.routes")(app);
+require("./app/routes/nftdata.routes")(app);
 
 
 // set port, listen for requests

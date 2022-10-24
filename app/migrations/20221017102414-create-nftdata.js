@@ -8,13 +8,35 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      tid: {
+      nft_name: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true
+      },
+      nft_contract_address: {
         type: Sequelize.STRING
       },
-      nft_name: {
+      token_uri: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true
+      },
+      token_standard: {
         type: Sequelize.STRING
+      },
+      token_id: {
+        type: Sequelize.STRING
+      },
+      price: {
+        type: Sequelize.STRING
+      },
+      listing_status: {
+        type: Sequelize.BOOLEAN
       },
       creator_name: {
+        type: Sequelize.STRING
+      },
+      creator_address: {
         type: Sequelize.STRING
       },
       description: {
@@ -23,22 +45,7 @@ module.exports = {
       p_background: {
         type: Sequelize.STRING
       },
-      token_standard: {
-        type: Sequelize.STRING
-      },
-      last_updated: {
-        type: Sequelize.STRING
-      },
-      token_id: {
-        type: Sequelize.STRING
-      },
-      nft_contract_address: {
-        type: Sequelize.STRING
-      },
       current_owner: {
-        type: Sequelize.STRING
-      },
-      token_uri: {
         type: Sequelize.STRING
       },
       u_discount: {
