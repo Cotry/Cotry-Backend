@@ -26,7 +26,7 @@ exports.listNfts = async (req, res) => {
             where: {
                 listing_status: true
             },
-            attributes: ['nft_name', 'token_uri', 'price', 'creator_name', 'description', 'token_standard', 'current_owner'],
+            attributes: ['nft_name', 'token_uri', 'image_url', 'price', 'creator_name', 'description', 'token_standard', 'current_owner'],
         })
         .then((items) => {
             res.send(items);
@@ -46,6 +46,7 @@ exports.newMint = async (req, res) => {
     const NFT_CONTRACT_ADDRESS = req.body.nft_contract_address;
     const TOKEN_ID = req.body.token_id;
     const TOKEN_URI = req.body.token_uri;
+    const IMAGE_URL = req.body.image_url;
     const CREATOR_NAME = req.body.creator_name;
     const CREATOR_ADDRESS = req.body.creator_address;
     const DESCRIPTION = req.body.description;
@@ -59,6 +60,7 @@ exports.newMint = async (req, res) => {
         nft_contract_address: NFT_CONTRACT_ADDRESS,
         token_id: TOKEN_ID,
         token_uri: TOKEN_URI,
+        image_url: IMAGE_URL,
         price: PRICE,
         creator_name: CREATOR_NAME,
         creator_address: CREATOR_ADDRESS,
