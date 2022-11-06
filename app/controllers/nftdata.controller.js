@@ -39,6 +39,68 @@ exports.listNfts = async (req, res) => {
         });
 };
 
+//list my NFT items
+exports.listMyNfts = async (req, res) => {
+    //check if session is authenticated.
+    //if yes then query the session id to get the wallet address.
+    //and then get the nfts owned
+
+    const CURRENT_SESSION_ID = req.cookies.vericheck;
+
+    let isexpired = false;
+    let loggedin = false;
+
+    //input validation of session_id is PENDING
+    await LoginVerify
+        .findOne({ where: { session_id: CURRENT_SESSION_ID } })
+        .then(async (entry) => {
+            if (entry !== null) {
+                //if session is expired
+                if (entry.expires_at < Date.now()) {
+                    // console.log("The session expire value is: ", expiryTime);
+                    // console.log("The current time value is: ", Date.now());
+                    isexpired = true;
+                }
+
+                //if user is already logged in
+                if (entry.auth_status && !isexpired) {
+                    loggedin = true;
+
+                    //get list of all NFTs
+                    await NFTData
+                        .findAll({
+                            where: {
+                                wallet_address: entry.wallet_address,
+                                listing_status: true
+                            },
+                            attributes: ['nft_name', 'token_uri', 'image_url', 'price', 'creator_name', 'description', 'token_standard', 'current_owner'],
+                        })
+                        .then((items) => {
+                            res.send(items);
+                        })
+                        .catch((err) => {
+                            res.status(500).send({
+                                message: "There was some error to fetch nftdata records",
+                                error: err
+                            });
+                        });
+                } else {
+                    //user needs to login again
+                    //PENDING
+
+                }
+            } else {
+                //user needs to login
+                //PENDING
+            }
+        });
+
+    //user already authenticated
+    if (loggedin) {
+        //
+    }
+};
+
 //create the new nft item entry in nftdata
 exports.newMint = async (req, res) => {
     //storing data
@@ -54,20 +116,32 @@ exports.newMint = async (req, res) => {
     const CURRENT_OWNER = req.body.current_owner;
     const LISTING_STATUS = req.body.listing_status;
     const PRICE = req.body.price;
+    const SUPPLY_COUNT = req.body.supply_count;
+    const PROMOCODE = req.body.promocode;
+    const MERCHANDISE = req.body.merchandise;
+    const EVENTTICKETS = req.body.eventtickets;
+    const WHITELIST = req.body.whiltelist;
+    const GIFT = req.body.gift;
 
     const newNFTMintItem = {
         nft_name: NFT_NAME,
+        token_standard: TOKEN_STANDARD,
         nft_contract_address: NFT_CONTRACT_ADDRESS,
+        supply_count: SUPPLY_COUNT,
         token_id: TOKEN_ID,
         token_uri: TOKEN_URI,
         image_url: IMAGE_URL,
         price: PRICE,
+        current_owner: CURRENT_OWNER,
         creator_name: CREATOR_NAME,
         creator_address: CREATOR_ADDRESS,
         description: DESCRIPTION,
-        token_standard: TOKEN_STANDARD,
-        current_owner: CURRENT_OWNER,
-        listing_status: LISTING_STATUS
+        listing_status: LISTING_STATUS,
+        u_promocode: PROMOCODE,
+        u_merchandise: MERCHANDISE,
+        u_eventtickets: EVENTTICKETS,
+        u_whiltelist: WHITELIST,
+        u_gift: GIFT
     };
 
     await NFTData

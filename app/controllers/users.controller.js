@@ -141,7 +141,7 @@ exports.getInterestsPic = async (req, res) => {
   readStream.pipe(res);
 };
 
-// Create and Save a new Tutorial
+// Create and Save a new User
 exports.create = async (req, res) => {
   // validate JWT is not possible at this stage of user onboarding, there are other checks that validates the users.
 
@@ -164,38 +164,6 @@ exports.create = async (req, res) => {
     return;
   }
 
-  // // Validate email
-  // if (!req.body.email) {
-  //   res.status(400).send({
-  //     message: "Email can not be empty!"
-  //   });
-  //   return;
-  // }
-
-  // // Validate name
-  // if (!req.body.name) {
-  //   res.status(400).send({
-  //     message: "Email can not be empty!"
-  //   });
-  //   return;
-  // }
-
-  // // Validate wallet address
-  // if (!req.body.wallet_address) {
-  //   res.status(400).send({
-  //     message: "Email can not be empty!"
-  //   });
-  //   return;
-  // }
-
-  // // Validate wallet type
-  // if (!req.body.wallet_type) {
-  //   res.status(400).send({
-  //     message: "Email can not be empty!"
-  //   });
-  //   return;
-  // }
-
   //validate interests and store the respective output.
   let interests;
   let arr;
@@ -214,7 +182,7 @@ exports.create = async (req, res) => {
 
   //PENDING: check if each element of arr is a interests from "interestsKey.txt" file
 
-  console.log(arr);
+  // console.log(arr);
 
   // Create a User
   const user = {
@@ -258,7 +226,22 @@ exports.create = async (req, res) => {
 
 };
 
-// Find a single Tutorial with its wallet address
+// // Handle referral requests
+// exports.referral = async (req, res) => {
+//   //get the username from GET inurl parameters
+//   // input validation is PENDING
+//   const referredUsername = req.params.key;
+
+//   // set localStroage key/value pair on client browser
+//   //this has to be set at frontend.
+//   localStorage.setItem("referredUsername", referredUsername);
+
+//   // redirect to login page, check if localStorage is changed during redirection.
+// };
+
+
+// Find a single User with its wallet address
+
 exports.findOne = async (req, res, next) => {
   // // Validate JWT
   if (req.valid == "invalid") {

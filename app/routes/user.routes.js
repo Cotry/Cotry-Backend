@@ -1,7 +1,7 @@
 module.exports = app => {
   const users = require("../controllers/users.controller.js");
   const validateJWT = require("../middleware/validateJWT");
-  const {uploadFileV2,uploadFile,getFileStream} = require("../s3");
+  const { uploadFileV2, uploadFile, getFileStream } = require("../s3");
   const multer = require('multer');
   var router = require("express").Router();
 
@@ -14,7 +14,7 @@ module.exports = app => {
 
   // Upload user profile pic and return s3 image link which only frontend server can access.
   //image will be uploaded in binary.
-   router.post('/user/image', uploadFileV2, async(req, res) => {});
+  router.post('/user/image', uploadFileV2, async (req, res) => { });
 
 
   router.get("/images/:key", users.getProfilePic);
@@ -35,6 +35,9 @@ module.exports = app => {
 
   // Delete all Users
   router.post("/deleteall", users.deleteAll); //Disable this in production or ensure proper security.
+
+  // // Referrerd username processing
+  // router.get("/referred-by/:key", users.referral); //Disable this in production or ensure proper security.
 
   app.use("/api/users", router);
 };

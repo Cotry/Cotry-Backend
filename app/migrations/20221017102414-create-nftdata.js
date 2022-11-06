@@ -53,7 +53,19 @@ module.exports = {
       current_owner: {
         type: Sequelize.STRING
       },
-      u_discount: {
+      u_promocode: {
+        type: Sequelize.STRING
+      },
+      u_merchandise: {
+        type: Sequelize.STRING
+      },
+      u_eventtickets: {
+        type: Sequelize.STRING
+      },
+      u_whiltelist: {
+        type: Sequelize.STRING
+      },
+      u_gift: {
         type: Sequelize.STRING
       },
       createdAt: {

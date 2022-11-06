@@ -258,6 +258,11 @@ exports.login = async (req, res) => {
                         }
                         // else it is a valid request, so move forward to login process
                     }
+
+                    //if user is already logged in
+                    if (entry.auth_status && !isexpired) {
+                        loggedin = true;
+                    }
                 } else {
                     isNotPrelogin = true;
                 }
