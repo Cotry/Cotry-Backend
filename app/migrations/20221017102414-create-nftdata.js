@@ -19,6 +19,9 @@ module.exports = {
       supply_count: {
         type: Sequelize.INTEGER
       },
+      max_user_tokens: {
+        type: Sequelize.INTEGER
+      },
       token_uri: {
         type: Sequelize.STRING,
         allowNull: false,

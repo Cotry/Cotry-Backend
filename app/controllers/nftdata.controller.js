@@ -117,6 +117,7 @@ exports.newMint = async (req, res) => {
     const LISTING_STATUS = req.body.listing_status;
     const PRICE = req.body.price;
     const SUPPLY_COUNT = req.body.supply_count;
+    const MAX_USER_TOKENS = req.body.max_user_tokens;
     const PROMOCODE = req.body.promocode;
     const MERCHANDISE = req.body.merchandise;
     const EVENTTICKETS = req.body.eventtickets;
@@ -128,6 +129,7 @@ exports.newMint = async (req, res) => {
         token_standard: TOKEN_STANDARD,
         nft_contract_address: NFT_CONTRACT_ADDRESS,
         supply_count: SUPPLY_COUNT,
+        max_user_tokens: MAX_USER_TOKENS,
         token_id: TOKEN_ID,
         token_uri: TOKEN_URI,
         image_url: IMAGE_URL,
