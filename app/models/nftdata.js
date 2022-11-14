@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
     nft_name: DataTypes.STRING,
     token_standard: DataTypes.STRING,
     nft_contract_address: DataTypes.STRING,
-    supply_count: DataTypes.NUMBER,
+    supply_count: DataTypes.INTEGER,
     token_id: DataTypes.STRING,
     token_uri: DataTypes.STRING,
     image_url: DataTypes.STRING,

@@ -155,7 +155,7 @@ exports.newMint = async (req, res) => {
         })
         .catch(err => {
             res.status(500).send({
-                message: "Not able to create nftdata entry in database.",
+                message: "Not able to create nftdata entry in database." + err,
                 error: err.original.detail
             });
         });

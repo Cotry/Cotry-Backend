@@ -16,6 +16,9 @@ module.exports = {
       nft_contract_address: {
         type: Sequelize.STRING
       },
+      supply_count: {
+        type: Sequelize.INTEGER
+      },
       token_uri: {
         type: Sequelize.STRING,
         allowNull: false,
