@@ -4,7 +4,7 @@ module.exports = app => {
     var router = require("express").Router();
 
     // List all NFT for marketplace
-    router.get("/listnfts", nftdata.listNfts);
+    router.get("/listnfts", nftdata.listAllNfts);
 
     // List my owned NFT for my profile
     router.get("/listmynfts", nftdata.listMyNfts);

@@ -19,7 +19,7 @@ const User = models.users;
 dotenv.config();
 
 //list all NFT items
-exports.listNfts = async (req, res) => {
+exports.listAllNfts = async (req, res) => {
     //output the database
 
     await NFTData
@@ -27,7 +27,7 @@ exports.listNfts = async (req, res) => {
             where: {
                 listing_status: true
             },
-            attributes: ['nft_name', 'token_uri', 'image_url', 'price', 'creator_name', 'description', 'token_standard', 'current_owner'],
+            attributes: ['nft_name', 'token_uri', 'image_url', 'price', 'creator_name', 'creator_address', 'description', 'nft_contract_address', 'supply_count', 'u_promocode', 'u_merchandise', 'u_eventtickets', 'u_whiltelist', 'u_gift'],
         })
         .then((items) => {
             res.send(items);
@@ -74,7 +74,7 @@ exports.listMyNfts = async (req, res) => {
                                 wallet_address: entry.wallet_address,
                                 listing_status: true
                             },
-                            attributes: ['nft_name', 'token_uri', 'image_url', 'price', 'creator_name', 'description', 'token_standard', 'current_owner'],
+                            attributes: ['nft_name', 'token_uri', 'image_url', 'price', 'creator_name', 'creator_address', 'description', 'nft_contract_address', 'supply_count', 'u_promocode', 'u_merchandise', 'u_eventtickets', 'u_whiltelist', 'u_gift'],
                         })
                         .then((items) => {
                             res.send(items);
@@ -120,11 +120,11 @@ exports.newMint = async (req, res) => {
     const PRICE = req.body.price;
     const SUPPLY_COUNT = req.body.supply_count;
     const MAX_USER_TOKENS = req.body.max_user_tokens;
-    const PROMOCODE = req.body.promocode;
-    const MERCHANDISE = req.body.merchandise;
-    const EVENTTICKETS = req.body.eventtickets;
-    const WHITELIST = req.body.whiltelist;
-    const GIFT = req.body.gift;
+    const PROMOCODE = req.body.u_promocode;
+    const MERCHANDISE = req.body.u_merchandise;
+    const EVENTTICKETS = req.body.u_eventtickets;
+    const WHITELIST = req.body.u_whiltelist;
+    const GIFT = req.body.u_gift;
 
     const newNFTMintItem = {
         nft_name: NFT_NAME,
