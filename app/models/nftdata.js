@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
     token_uri: DataTypes.STRING,
     image_url: DataTypes.STRING,
     price: DataTypes.STRING,
-    current_owner: DataTypes.STRING,
+    current_owner: DataTypes.STRING,    //current owner is not needed.
     creator_name: DataTypes.STRING,
     creator_address: DataTypes.STRING,
     description: DataTypes.STRING,

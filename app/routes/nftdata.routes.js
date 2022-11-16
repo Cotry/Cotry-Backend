@@ -12,5 +12,8 @@ module.exports = app => {
     // New mint update to database
     router.post("/newmint", nftdata.newMint);
 
+    // New mint update to database
+    router.post("/buynft", nftdata.buyNFts);
+
     app.use("/api/nft/", router);
 };

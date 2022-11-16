@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="CotryDB" id="Project-1b28" database="PostgreSQL" >
+	<comment><![CDATA[Cotry Database Design Diagram]]></comment>
+	<schema name="cotrydb" >
+		<table name="login_verify" prior="tbl" >
+			<comment><![CDATA[To Verify user details while login process.]]></comment>
+			<column name="wallet_address" type="varchar" length="100" jt="12" />
+			<column name="session_id" type="varchar" jt="12" />
+			<column name="nonce" type="varchar" jt="12" />
+			<column name="auth_status" type="boolean" length="1" jt="-7" />
+			<column name="created_at" type="date" jt="91" />
+			<column name="expires_at" type="date" jt="91" />
+		</table>
+		<table name="nftdata" prior="tbl" >
+			<comment><![CDATA[NFT marketplace items database]]></comment>
+			<column name="id" type="integer" jt="4" />
+			<column name="nft_name" type="varchar" length="100" jt="12" />
+			<column name="token_standard" type="varchar" jt="12" />
+			<column name="nft_contract_address" type="varchar" length="100" jt="12" />
+			<column name="supply_count" type="integer" jt="4" />
+			<column name="max_user_tokens" type="integer" jt="4" />
+			<column name="token_id" type="varchar" jt="12" />
+			<column name="token_uri" type="varchar" jt="12" />
+			<column name="image_url" type="varchar" jt="12" />
+			<column name="price" type="varchar" jt="12" />
+			<column name="current_owner" type="varchar" jt="12" />
+			<column name="creator_name" type="varchar" length="100" jt="12" />
+			<column name="creator_address" type="varchar" length="100" jt="12" />
+			<column name="description" type="text" jt="12" />
+			<column name="p_background" type="varchar" jt="12" />
+			<column name="listing_status" type="bigint" length="1" jt="-5" />
+			<column name="u_promocode" type="varchar" jt="12" />
+			<column name="u_merchandise" type="varchar" jt="12" />
+			<column name="u_eventtickets" type="varchar" jt="12" />
+			<column name="u_whiltelist" type="varchar" jt="12" />
+			<column name="u_gift" type="varchar" jt="12" />
+			<index name="id" unique="NORMAL" >
+				<column name="id" />
+			</index>
+			<fk name="fk_nftdata_nftrecord" to_schema="cotrydb" to_table="nftrecord" >
+				<fk_column name="id" pk="nft_id" />
+			</fk>
+		</table>
+		<table name="nftrecord" prior="tbl" >
+			<comment><![CDATA[Record book of all NFT owners and purchases.]]></comment>
+			<column name="nft_id" type="integer" jt="4" />
+			<column name="nft_contract_address" type="varchar" length="100" jt="12" />
+			<column name="token_uri" type="varchar" jt="12" />
+			<column name="token_id" type="integer" jt="4" />
+			<column name="buyer_address" type="varchar" length="100" jt="12" />
+			<index name="unq_nftrecord_nft_id" unique="UNIQUE_KEY" >
+				<column name="nft_id" />
+			</index>
+		</table>
+		<table name="users" prior="tbl" >
+			<comment><![CDATA[table to store all users onboarded to cotry platform.]]></comment>
+			<column name="name" type="varchar" length="100" jt="12" />
+			<column name="email" type="varchar" jt="12" />
+			<column name="username" type="varchar" length="100" jt="12" />
+			<column name="interests" type="varchar" jt="12" />
+			<column name="wallet_address" type="varchar" length="100" jt="12" />
+			<column name="profile_pic_url" type="varchar" jt="12" />
+			<column name="wallet_type" type="varchar" jt="12" />
+			<column name="created_at" type="date" jt="91" />
+			<column name="updated_at" type="date" jt="91" />
+			<column name="verified" type="boolean" jt="-7" />
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout-c0e" show_relation="columns" >
+		<entity schema="cotrydb" name="login_verify" color="EEC1C1" x="320" y="288" />
+		<entity schema="cotrydb" name="nftdata" color="C1EECF" x="912" y="240" />
+		<entity schema="cotrydb" name="nftrecord" color="EEC1EA" x="1248" y="256" />
+		<entity schema="cotrydb" name="users" color="C2C1EE" x="640" y="256" />
+		<callout x="48" y="48" pointer="Round" >
+			<comment><![CDATA[A layout is a diagram with tools.
+- For a better understanding of the schema, create multiple layouts.
+- Right-click the layout to create new tables. 
+- Double-click table headers to edit. 
+- The schema will be saved to the model file. 
+- Later, you can connect to any database and deploy the schema into the database.]]></comment>
+		</callout>
+	</layout>
+</project>

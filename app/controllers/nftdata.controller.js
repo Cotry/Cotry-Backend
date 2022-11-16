@@ -13,6 +13,7 @@ const web3 = new Web3('http://localhost:8454');     //any RPC URL is fine for va
 const UserVerify = models.user_verify;
 const LoginVerify = models.login_verify;
 const NFTData = models.nftdata;
+const NFTRecord = models.nftrecord;
 const User = models.users;
 
 dotenv.config();
@@ -104,6 +105,7 @@ exports.listMyNfts = async (req, res) => {
 //create the new nft item entry in nftdata
 exports.newMint = async (req, res) => {
     //storing data
+    //improve code by destructuring
     const NFT_NAME = req.body.nft_name;
     const NFT_CONTRACT_ADDRESS = req.body.nft_contract_address;
     const TOKEN_ID = req.body.token_id;
@@ -162,4 +164,51 @@ exports.newMint = async (req, res) => {
             });
         });
 
+};
+
+//buy NFTs
+exports.buyNFts = async (req, res) => {
+    //improve code by destructuring
+    const NFT_NAME = req.body.nft_name;
+    const NFT_CONTRACT_ADDRESS = req.body.nft_contract_address;
+    const TOKEN_URI = req.body.token_uri;
+    const TOKENS_PURCHASED = req.body.tokens_purchased;
+    const BUYER_ADDRESS = req.body.buyer_address;
+    const TOKEN_IDS = req.body.token_ids;
+    let nft_id_nftdata = 0;
+
+    //fetch all the bought token ids for the buyer : TOKEN_IDS.
+    //PENDING
+    //CREATE A NEW CONTRACT FUNCTION FOR THIS.
+
+
+    //fetch the nft id for the NFT from nftdata.
+    //PENDING
+
+    //create a single record for all nft purchased for a single type.
+    let newNFTMintItem = {
+        nft_id: nft_id_nftdata,
+        nft_name: NFT_NAME,
+        nft_contract_address: NFT_CONTRACT_ADDRESS,
+        token_uri: TOKEN_URI,
+        tokens_purchased: TOKENS_PURCHASED,
+        buyer_address: BUYER_ADDRESS,
+        tokens_ids: TOKEN_IDS,
+    };
+
+    await NFTRecord
+        .create(newNFTMintItem)
+        .then(data => {
+            //send this unique string in body of response, and continue login process
+            res.send({
+                status: "SUCCESS",
+                message: "Data was successfully updated in the database."
+            });
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Not able to create nftrecord entry in database." + err,
+                error: err.original.detail
+            });
+        });
 };
