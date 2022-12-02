@@ -15,7 +15,7 @@ dotenv.config();
 
 const app = express();
 
-var corsWhitelist = ['https://cotry.club', 'https://www.cotry.club', 'http://localhost:3000'];
+var corsWhitelist = ['https://cotry.club', 'https://www.cotry.club', 'http://localhost:3000', 'http://127.0.0.1:3000', 'http://127.0.0,1', 'http://localhost'];
 
 var corsOptions = {
   origin: corsWhitelist,
