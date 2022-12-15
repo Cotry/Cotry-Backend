@@ -40,6 +40,33 @@ exports.listAllNfts = async (req, res) => {
         });
 };
 
+//query one NFT
+exports.queryNft = async (req, res) => {
+    //output the database
+
+    const NFT_CONTRACT_ADDRESS = req.body.nft_contract_address;
+    const TOKEN_URI = req.body.token_uri;
+
+    await NFTData
+        .findOne({
+            where: {
+                nft_contract_address: NFT_CONTRACT_ADDRESS,
+                token_uri: TOKEN_URI,
+                listing_status: true
+            },
+            attributes: ['nft_name', 'token_uri', 'image_url', 'price', 'creator_name', 'creator_address', 'description', 'nft_contract_address', 'supply_count', 'u_promocode', 'u_merchandise', 'u_eventtickets', 'u_whiltelist', 'u_gift'],
+        })
+        .then((item) => {
+            res.send(item);
+        })
+        .catch((err) => {
+            res.status(500).send({
+                message: "There was some error to fetch single nftdata record",
+                error: err
+            });
+        });
+};
+
 //list my NFT items
 exports.listMyNfts = async (req, res) => {
     //check if session is authenticated.
@@ -101,6 +128,8 @@ exports.listMyNfts = async (req, res) => {
         //
     }
 };
+
+
 
 //create the new nft item entry in nftdata
 exports.newMint = async (req, res) => {

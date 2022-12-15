@@ -6,6 +6,10 @@ module.exports = app => {
     // List all NFT for marketplace
     router.get("/listnfts", nftdata.listAllNfts);
 
+
+    // List all NFT for marketplace
+    router.post("/querynft", nftdata.queryNft);
+
     // List my owned NFT for my profile
     router.get("/listmynfts", nftdata.listMyNfts);
 
