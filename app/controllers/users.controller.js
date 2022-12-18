@@ -253,7 +253,7 @@ exports.findOne = async (req, res, next) => {
     // const WALLETADDRESS = req.body.walletAddress;
     const EMAIL = req.body.email;
 
-    await User.findAll({
+    await User.findOne({
       limit: 1,
       where: {
         email: EMAIL
@@ -261,10 +261,12 @@ exports.findOne = async (req, res, next) => {
     })
       .then(data => {
         if (data) {
-          res.send(data);
-        } else {
+          res.send({
+            message: true
+          });
+        } else {  //if this find is unsuccessful, the data == null
           res.status(404).send({
-            message: `Cannot find User with email = ${EMAIL}.`
+            message: false
           });
         }
       });
