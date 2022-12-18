@@ -251,12 +251,12 @@ exports.findOne = async (req, res, next) => {
     });
   } else {
     // const WALLETADDRESS = req.body.walletAddress;
-    const USERNAME = req.body.username;
+    const EMAIL = req.body.email;
 
     await User.findAll({
       limit: 1,
       where: {
-        username: USERNAME
+        email: EMAIL
       }
     })
       .then(data => {
@@ -264,7 +264,7 @@ exports.findOne = async (req, res, next) => {
           res.send(data);
         } else {
           res.status(404).send({
-            message: `Cannot find User with username = ${USERNAME}.`
+            message: `Cannot find User with email = ${EMAIL}.`
           });
         }
       });
