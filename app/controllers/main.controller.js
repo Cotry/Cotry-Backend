@@ -16,31 +16,6 @@ const User = models.users;
 
 dotenv.config();
 
-exports.checkUsername = async (req, res) => {
-    //PENDING INPUT VALIDATION
-    const USERNAME = req.body.username;
-    //check if username entry is present in User database
-    await User
-        .count({ where: { username: USERNAME } })
-        .then(async (count) => {
-            if (count > 0) {
-                res.status(400).send({
-                    message: "This useranme already exists, please choose a different username."
-                });
-            } else {
-                res.send({
-                    message: "Username satisfies condition. Please proceed to prelogin."
-                });
-            }
-        })
-        .catch(err => {
-            console.log("Error is here");
-            res.status(500).send({
-                message: "Error in querying username."
-            });
-        });
-};
-
 exports.prelogin = async (req, res) => {
 
     const WALLETADDRESS = req.body.wallet_address;

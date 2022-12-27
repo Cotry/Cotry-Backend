@@ -22,7 +22,13 @@ module.exports = app => {
   router.get("/images/interests/:key", users.getInterestsPic);
 
   // Retrieve a single User with its wallet address
-  router.post("/user/query", users.findOne);
+  router.post("/user/query", users.checkOne);
+
+  // check user for duplicates.
+  router.post("/user/usernamecheck", users.checkUsername);
+
+  // Retrieve a single User with its wallet address
+  router.post("/user/getone", users.findOne);
 
   // Update a User with its wallet address (wallet address cant be updated)
   router.post("/user/update", users.update);

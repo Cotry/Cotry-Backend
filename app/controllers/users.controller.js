@@ -242,7 +242,7 @@ exports.create = async (req, res) => {
 
 // Find a single User with its wallet address
 
-exports.findOne = async (req, res, next) => {
+exports.checkOne = async (req, res, next) => {
   // // Validate JWT
   if (req.valid == "invalid") {
     console.log("this is hit, request is invalid \n\n");
@@ -282,6 +282,72 @@ exports.findOne = async (req, res, next) => {
     //     message: "Error retrieving User with username = " + USERNAME
     //   });
     // });
+  }
+};
+
+exports.checkUsername = async (req, res) => {
+  //PENDING INPUT VALIDATION
+  const USERNAME = req.body.username;
+  //check if username entry is present in User database
+  await User
+    .count({ where: { username: USERNAME } })
+    .then(async (count) => {
+      if (count > 0) {
+        res.status(400).send({
+          message: "This username already exists, please choose a different username."
+        });
+      } else {
+        res.send({
+          message: "Username satisfies condition. Please proceed to prelogin."
+        });
+      }
+    })
+    .catch(err => {
+      console.log("Error is here");
+      res.status(500).send({
+        message: "Error in querying username."
+      });
+    });
+};
+
+exports.findOne = async (req, res, next) => {
+  // // Validate JWT
+  if (req.valid == "invalid") {
+    console.log("this is hit, request is invalid \n\n");
+    res.status(403).send({
+      message: "Invalid JWT verification."
+    });
+  } else {
+    // const WALLETADDRESS = req.body.walletAddress;
+    const EMAIL = req.body.email;
+
+    if (!req.body.email) {
+      res.status(400).send({
+        message: "Email can not be empty!"
+      });
+      return;
+    }
+
+    await User.findOne({
+      limit: 1,
+      where: {
+        email: EMAIL
+      }
+    })
+      .then(data => {
+        if (data) {
+          res.send(data);
+        } else {  //if this find is unsuccessful, the data == null
+          res.status(404).send({
+            message: "Not able to find user"
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).send({
+          message: "Error retrieving User"
+        });
+      });
   }
 };
 
