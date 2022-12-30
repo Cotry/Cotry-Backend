@@ -323,8 +323,8 @@ exports.login = async (req, res) => {
                         SIGVAL
                     );
 
-                    // console.log("The req body address: ", WALLETADDRESS);
-                    // console.log("The verified address: ", verifyAddress);
+                    console.log("\nThe req body address: ", WALLETADDRESS);
+                    console.log("\nThe verified address: ", verifyAddress);
 
                     //check digital signature verification. If not verified then return 401 not authorized.
                     if (WALLETADDRESS != verifyAddress) {

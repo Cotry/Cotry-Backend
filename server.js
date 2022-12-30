@@ -19,6 +19,7 @@ var corsWhitelist = ['https://cotry.club', 'https://www.cotry.club', 'http://loc
 
 var corsOptions = {
   origin: corsWhitelist,
+  credentials: true,
   optionsSuccessStatus: 200 // For legacy browser support
 };
 
@@ -69,14 +70,14 @@ app.use(session({
   }),
   // Ref: https://stackoverflow.com/questions/40381401/when-to-use-saveuninitialized-and-resave-in-express-session
   // It basically means that for every request to the server, it reset the session cookie
-  resave: false,
+  resave: true,
   // True, means that Your session is only Stored into your storage, when any of the Property is modified in req.session
   saveUninitialized: true,
   cookie: {
     // httpOnly: true, //Prevent javascript access to cookie
     // secure: true, //cookie data will be sent only if connection is HTTPS
     // sameSite: true,
-    maxAge: 1000 * 60 * 60 * 2 // = Time is in milliseconds for 10min
+    maxAge: 1000 * 60 * 60 * 4 // = Time is in milliseconds for 10min
     // maxAge: 1000 * 60 * 60 * 24 // Time is in milliseconds for 1 day
   }
 }));
