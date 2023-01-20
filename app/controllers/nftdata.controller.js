@@ -197,7 +197,7 @@ exports.buyNFts = async (req, res) => {
                 //then we only need to update the token_ids
                 //Security issue: PENDING
                 //I am assuming that the frontend gives me the exhaustive list of tokens ownned by the user.
-                await entry.update({ token_uri: newNFTMintItem.tokens_ids });
+                await entry.update({ tokens_ids: newNFTMintItem.tokens_ids });
             } else {
                 //if no entry then create a new record.
                 await NFTRecord
