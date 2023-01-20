@@ -6,18 +6,26 @@ module.exports = app => {
     // List all NFT for marketplace
     router.get("/listnfts", nftdata.listAllNfts);
 
+    // Get one NFT
+    router.post("/querynft", nftdata.queryListedNft);
 
-    // List all NFT for marketplace
-    router.post("/querynft", nftdata.queryNft);
-
-    // List my owned NFT for my profile
+    // List my listed NFT for my profile
     router.get("/listmynfts", nftdata.listMyNfts);
 
-    // New mint update to database
+    // List my sold NFT for my profile
+    router.get("/mysoldnfts", nftdata.mySoldNfts);
+
+    // Mint new NFT
     router.post("/newmint", nftdata.newMint);
 
     // New mint update to database
     router.post("/buynft", nftdata.buyNFts);
+
+    // Delete one NFT
+    router.post("/deletenft", nftdata.deleteSingleNFT);
+
+    // Delete all NFTs
+    router.get("/deleteallnft", nftdata.deleteAllNFTs);
 
     app.use("/api/nft/", router);
 };

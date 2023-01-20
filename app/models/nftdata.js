@@ -29,6 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     description: DataTypes.STRING,
     p_background: DataTypes.STRING,
     listing_status: DataTypes.BOOLEAN,
+    sold_status: DataTypes.BOOLEAN,
     u_promocode: DataTypes.STRING,
     u_merchandise: DataTypes.STRING,
     u_eventtickets: DataTypes.STRING,

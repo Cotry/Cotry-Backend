@@ -42,7 +42,12 @@ module.exports = {
         type: Sequelize.STRING
       },
       listing_status: {
-        type: Sequelize.BOOLEAN
+        type: Sequelize.BOOLEAN,
+        default: false
+      },
+      sold_status: {
+        type: Sequelize.BOOLEAN,
+        default: false
       },
       creator_name: {
         type: Sequelize.STRING

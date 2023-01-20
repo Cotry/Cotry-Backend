@@ -41,7 +41,7 @@ exports.listAllNfts = async (req, res) => {
 };
 
 //query one NFT
-exports.queryNft = async (req, res) => {
+exports.queryListedNft = async (req, res) => {
     //output the database
 
     const NFT_CONTRACT_ADDRESS = req.body.nft_contract_address;
@@ -67,7 +67,33 @@ exports.queryNft = async (req, res) => {
         });
 };
 
-//list my NFT items
+//query one NFT
+exports.queryNft = async (req, res) => {
+    //output the database
+
+    const NFT_CONTRACT_ADDRESS = req.body.nft_contract_address;
+    const TOKEN_URI = req.body.token_uri;
+
+    await NFTData
+        .findOne({
+            where: {
+                nft_contract_address: NFT_CONTRACT_ADDRESS,
+                token_uri: TOKEN_URI
+            },
+            attributes: ['nft_name', 'token_uri', 'image_url', 'price', 'creator_name', 'creator_address', 'description', 'nft_contract_address', 'supply_count', 'u_promocode', 'u_merchandise', 'u_eventtickets', 'u_whiltelist', 'u_gift'],
+        })
+        .then((item) => {
+            res.send(item);
+        })
+        .catch((err) => {
+            res.status(500).send({
+                message: "There was some error to fetch single nftdata record",
+                error: err
+            });
+        });
+};
+
+//list my listed NFT items
 exports.listMyNfts = async (req, res) => {
     //check if session is authenticated.
     //if yes then query the session id to get the wallet address.
@@ -129,6 +155,67 @@ exports.listMyNfts = async (req, res) => {
     }
 };
 
+//list my NFT items
+exports.mySoldNfts = async (req, res) => {
+    //check if session is authenticated.
+    //if yes then query the session id to get the wallet address.
+    //and then get the nfts owned
+
+    const CURRENT_SESSION_ID = req.cookies.vericheck;
+
+    let isexpired = false;
+    let loggedin = false;
+
+    //input validation of session_id is PENDING
+    await LoginVerify
+        .findOne({ where: { session_id: CURRENT_SESSION_ID } })
+        .then(async (entry) => {
+            if (entry !== null) {
+                //if session is expired
+                if (entry.expires_at < Date.now()) {
+                    // console.log("The session expire value is: ", expiryTime);
+                    // console.log("The current time value is: ", Date.now());
+                    isexpired = true;
+                }
+
+                //if user is already logged in
+                if (entry.auth_status && !isexpired) {
+                    loggedin = true;
+
+                    //get list of all NFTs
+                    await NFTData
+                        .findAll({
+                            where: {
+                                wallet_address: entry.wallet_address,
+                                listing_status: false
+                            },
+                            attributes: ['nft_name', 'token_uri', 'image_url', 'price', 'creator_name', 'creator_address', 'description', 'nft_contract_address', 'supply_count', 'u_promocode', 'u_merchandise', 'u_eventtickets', 'u_whiltelist', 'u_gift'],
+                        })
+                        .then((items) => {
+                            res.send(items);
+                        })
+                        .catch((err) => {
+                            res.status(500).send({
+                                message: "There was some error to fetch nftdata records",
+                                error: err
+                            });
+                        });
+                } else {
+                    //user needs to login again
+                    //PENDING
+
+                }
+            } else {
+                //user needs to login
+                //PENDING
+            }
+        });
+
+    //user already authenticated
+    if (loggedin) {
+        //
+    }
+};
 
 
 //create the new nft item entry in nftdata
@@ -238,6 +325,47 @@ exports.buyNFts = async (req, res) => {
             res.status(500).send({
                 message: "Not able to create nftrecord entry in database." + err,
                 error: err.original.detail
+            });
+        });
+};
+
+// CAUTION: should not be enabled in production
+exports.deleteSingleNFT = async (req, res) => {
+
+    const NFT_CONTRACT_ADDRESS = req.body.nft_contract_address;
+    const TOKEN_URI = req.body.token_uri;
+
+    await NFTData.destroy({
+        where: {
+            nft_contract_address: NFT_CONTRACT_ADDRESS,
+            token_uri: TOKEN_URI
+        },
+        truncate: false
+    })
+        .then(num => {
+            res.send({ message: `${num} NFTs were deleted successfully!` });
+        })
+        .catch(err => {
+            res.status(500).send({
+                message:
+                    err.message || "Some error occurred while removing all tutorials."
+            });
+        });
+};
+
+// CAUTION: should not be enabled in production
+exports.deleteAllNFTs = async (req, res) => {
+    await NFTData.destroy({
+        where: {},
+        truncate: false
+    })
+        .then(num => {
+            res.send({ message: `${num} NFTs were deleted successfully!` });
+        })
+        .catch(err => {
+            res.status(500).send({
+                message:
+                    err.message || "Some error occurred while removing all tutorials."
             });
         });
 };
