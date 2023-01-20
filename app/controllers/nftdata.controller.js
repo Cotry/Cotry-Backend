@@ -93,6 +93,177 @@ exports.queryNft = async (req, res) => {
         });
 };
 
+//create the new nft item entry in nftdata
+exports.newMint = async (req, res) => {
+    //storing data
+    //improve code by destructuring
+    const NFT_NAME = req.body.nft_name;
+    const NFT_CONTRACT_ADDRESS = req.body.nft_contract_address;
+    const TOKEN_ID = req.body.token_id;
+    const TOKEN_URI = req.body.token_uri;
+    const IMAGE_URL = req.body.image_url;
+    const CREATOR_NAME = req.body.creator_name;
+    const CREATOR_ADDRESS = req.body.creator_address;
+    const DESCRIPTION = req.body.description;
+    const TOKEN_STANDARD = req.body.token_standard;
+    const CURRENT_OWNER = req.body.current_owner;
+    const LISTING_STATUS = req.body.listing_status;
+    const PRICE = req.body.price;
+    const SUPPLY_COUNT = req.body.supply_count;
+    const MAX_USER_TOKENS = req.body.max_user_tokens;
+    const PROMOCODE = req.body.u_promocode;
+    const MERCHANDISE = req.body.u_merchandise;
+    const EVENTTICKETS = req.body.u_eventtickets;
+    const WHITELIST = req.body.u_whiltelist;
+    const GIFT = req.body.u_gift;
+
+    const newNFTMintItem = {
+        nft_name: NFT_NAME,
+        token_standard: TOKEN_STANDARD,
+        nft_contract_address: NFT_CONTRACT_ADDRESS,
+        supply_count: SUPPLY_COUNT,
+        max_user_tokens: MAX_USER_TOKENS,
+        token_id: TOKEN_ID,
+        token_uri: TOKEN_URI,
+        image_url: IMAGE_URL,
+        price: PRICE,
+        current_owner: CURRENT_OWNER,
+        creator_name: CREATOR_NAME,
+        creator_address: CREATOR_ADDRESS,
+        description: DESCRIPTION,
+        listing_status: LISTING_STATUS,
+        u_promocode: PROMOCODE,
+        u_merchandise: MERCHANDISE,
+        u_eventtickets: EVENTTICKETS,
+        u_whiltelist: WHITELIST,
+        u_gift: GIFT
+    };
+
+    await NFTData
+        .create(newNFTMintItem)
+        .then(data => {
+            //send this unique string in body of response, and continue login process
+            res.send({
+                status: "SUCCESS",
+                message: "Data was successfully updated in the database."
+            });
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Not able to create nftdata entry in database." + err,
+                error: err.original.detail
+            });
+        });
+
+};
+
+//buy NFTs
+exports.buyNFts = async (req, res) => {
+
+    //This data structure will log all NFT being minted. Like copies of NFT.
+    //The nftdata model is used to only store different types of NFTs.
+
+    //improve code by destructuring
+    const NFT_CONTRACT_ADDRESS = req.body.nft_contract_address;
+    const TOKEN_URI = req.body.token_uri;
+    const TOKENS_PURCHASED = req.body.tokens_purchased;
+    const BUYER_ADDRESS = req.body.buyer_address;
+    const TOKEN_IDS = req.body.token_ids;
+    let nft_id_nftdata = 0; //PENIDNG: need to have a logic for this
+
+    //create a single record for all nft purchased for a single type.
+    let newNFTMintItem = {
+        nft_id: nft_id_nftdata,
+        nft_contract_address: NFT_CONTRACT_ADDRESS,
+        token_uri: TOKEN_URI,
+        tokens_purchased: TOKENS_PURCHASED,
+        buyer_address: BUYER_ADDRESS,
+        tokens_ids: TOKEN_IDS,
+    };
+
+    console.log("\n Reached Here !!! \n");
+
+    //update the nftrecord about the newly minted tokens.
+    await NFTRecord
+        .findOne({
+            where: {
+                nft_contract_address: newNFTMintItem.nft_contract_address,
+                token_uri: newNFTMintItem.token_uri,
+                buyer_address: newNFTMintItem.buyer_address
+            }
+        })
+        .then(async (entry) => {
+            if (entry) {
+                //then we only need to update the token_ids
+                //Security issue: PENDING
+                //I am assuming that the frontend gives me the exhaustive list of tokens ownned by the user.
+                await entry.update({ token_uri: newNFTMintItem.tokens_ids });
+            } else {
+                //if no entry then create a new record.
+                await NFTRecord
+                    .create(newNFTMintItem)
+                    .then(data => {
+                        //send this unique string in body of response, and continue login process
+                        res.send({
+                            status: "SUCCESS",
+                            message: "Data was successfully updated in the database."
+                        });
+                    })
+                    .catch(err => {
+                        res.status(500).send({
+                            message: "Not able to create nftrecord entry in database." + err,
+                            error: err.original.detail
+                        });
+                    });
+            }
+        })
+        .catch((err) => {
+            res.status(500).send({
+                message:
+                    err.message || "Some error occurred while updating the backend database about the new NFT purchase."
+            });
+        });
+};
+
+
+exports.listAllPurchaseNFTs = async (req, res) => {
+    await NFTRecord
+        .findAll()
+        .then((items) => {
+            res.send(items);
+        })
+        .catch((err) => {
+            res.status(500).send({
+                message: "There was some error to fetch nft minting data",
+                error: err
+            });
+        });
+};
+
+exports.listPurchaseNFTsByUser = async (req, res) => {
+
+    const BUYER_ADDRESS = req.body.wallet_address;
+
+    console.log("Wallet buyer address: ", BUYER_ADDRESS);
+
+    await NFTRecord
+        .findAll({
+            where: {
+                buyer_address: BUYER_ADDRESS
+            }
+        })
+        .then((items) => {
+            res.send(items);
+        })
+        .catch((err) => {
+            res.status(500).send({
+                message: "There was some error to fetch nft minting data for the user",
+                error: err
+            });
+        });
+};
+
+
 //list my listed NFT items
 exports.listMyNfts = async (req, res) => {
     //check if session is authenticated.
@@ -217,117 +388,23 @@ exports.mySoldNfts = async (req, res) => {
     }
 };
 
-
-//create the new nft item entry in nftdata
-exports.newMint = async (req, res) => {
-    //storing data
-    //improve code by destructuring
-    const NFT_NAME = req.body.nft_name;
-    const NFT_CONTRACT_ADDRESS = req.body.nft_contract_address;
-    const TOKEN_ID = req.body.token_id;
-    const TOKEN_URI = req.body.token_uri;
-    const IMAGE_URL = req.body.image_url;
-    const CREATOR_NAME = req.body.creator_name;
-    const CREATOR_ADDRESS = req.body.creator_address;
-    const DESCRIPTION = req.body.description;
-    const TOKEN_STANDARD = req.body.token_standard;
-    const CURRENT_OWNER = req.body.current_owner;
-    const LISTING_STATUS = req.body.listing_status;
-    const PRICE = req.body.price;
-    const SUPPLY_COUNT = req.body.supply_count;
-    const MAX_USER_TOKENS = req.body.max_user_tokens;
-    const PROMOCODE = req.body.u_promocode;
-    const MERCHANDISE = req.body.u_merchandise;
-    const EVENTTICKETS = req.body.u_eventtickets;
-    const WHITELIST = req.body.u_whiltelist;
-    const GIFT = req.body.u_gift;
-
-    const newNFTMintItem = {
-        nft_name: NFT_NAME,
-        token_standard: TOKEN_STANDARD,
-        nft_contract_address: NFT_CONTRACT_ADDRESS,
-        supply_count: SUPPLY_COUNT,
-        max_user_tokens: MAX_USER_TOKENS,
-        token_id: TOKEN_ID,
-        token_uri: TOKEN_URI,
-        image_url: IMAGE_URL,
-        price: PRICE,
-        current_owner: CURRENT_OWNER,
-        creator_name: CREATOR_NAME,
-        creator_address: CREATOR_ADDRESS,
-        description: DESCRIPTION,
-        listing_status: LISTING_STATUS,
-        u_promocode: PROMOCODE,
-        u_merchandise: MERCHANDISE,
-        u_eventtickets: EVENTTICKETS,
-        u_whiltelist: WHITELIST,
-        u_gift: GIFT
-    };
-
-    await NFTData
-        .create(newNFTMintItem)
-        .then(data => {
-            //send this unique string in body of response, and continue login process
-            res.send({
-                status: "SUCCESS",
-                message: "Data was successfully updated in the database."
-            });
+// CAUTION: should not be enabled in production
+exports.deleteMintingData = async (req, res) => {
+    await NFTRecord.destroy({
+        where: {},
+        truncate: false
+    })
+        .then(num => {
+            res.send({ message: `${num} Minting Data were deleted successfully!` });
         })
         .catch(err => {
             res.status(500).send({
-                message: "Not able to create nftdata entry in database." + err,
-                error: err.original.detail
-            });
-        });
-
-};
-
-//buy NFTs
-exports.buyNFts = async (req, res) => {
-    //improve code by destructuring
-    const NFT_NAME = req.body.nft_name;
-    const NFT_CONTRACT_ADDRESS = req.body.nft_contract_address;
-    const TOKEN_URI = req.body.token_uri;
-    const TOKENS_PURCHASED = req.body.tokens_purchased;
-    const BUYER_ADDRESS = req.body.buyer_address;
-    const TOKEN_IDS = req.body.token_ids;
-    let nft_id_nftdata = 0;
-
-    //fetch all the bought token ids for the buyer : TOKEN_IDS.
-    //PENDING
-    //CREATE A NEW CONTRACT FUNCTION FOR THIS.
-
-
-    //fetch the nft id for the NFT from nftdata.
-    //PENDING
-
-    //create a single record for all nft purchased for a single type.
-    let newNFTMintItem = {
-        nft_id: nft_id_nftdata,
-        nft_name: NFT_NAME,
-        nft_contract_address: NFT_CONTRACT_ADDRESS,
-        token_uri: TOKEN_URI,
-        tokens_purchased: TOKENS_PURCHASED,
-        buyer_address: BUYER_ADDRESS,
-        tokens_ids: TOKEN_IDS,
-    };
-
-    await NFTRecord
-        .create(newNFTMintItem)
-        .then(data => {
-            //send this unique string in body of response, and continue login process
-            res.send({
-                status: "SUCCESS",
-                message: "Data was successfully updated in the database."
-            });
-        })
-        .catch(err => {
-            res.status(500).send({
-                message: "Not able to create nftrecord entry in database." + err,
-                error: err.original.detail
+                message:
+                    err.message || "Some error occurred while removing minting data."
             });
         });
 };
+
 
 // CAUTION: should not be enabled in production
 exports.deleteSingleNFT = async (req, res) => {
@@ -348,7 +425,7 @@ exports.deleteSingleNFT = async (req, res) => {
         .catch(err => {
             res.status(500).send({
                 message:
-                    err.message || "Some error occurred while removing all tutorials."
+                    err.message || "Some error occurred while removing single NFTs."
             });
         });
 };
@@ -365,7 +442,7 @@ exports.deleteAllNFTs = async (req, res) => {
         .catch(err => {
             res.status(500).send({
                 message:
-                    err.message || "Some error occurred while removing all tutorials."
+                    err.message || "Some error occurred while removing all nfts."
             });
         });
 };

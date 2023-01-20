@@ -3,6 +3,10 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
+
+  //This data structure will log all NFT being minted. Like copies of NFT.
+  //The nftdata model is used to only store different types of NFTs.
+
   class nftrecord extends Model {
     /**
      * Helper method for defining associations.

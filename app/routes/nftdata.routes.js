@@ -21,6 +21,15 @@ module.exports = app => {
     // New mint update to database
     router.post("/buynft", nftdata.buyNFts);
 
+    // List All NFTs Bought by all users
+    router.get("/users/allpurchases", nftdata.listAllPurchaseNFTs);
+
+    // List All NFTs Bought by a user
+    router.post("/user/purchases", nftdata.listPurchaseNFTsByUser);
+
+    // Delete all minting data - NFTRecord
+    router.get("/deleteallminted", nftdata.deleteMintingData);
+
     // Delete one NFT
     router.post("/deletenft", nftdata.deleteSingleNFT);
 
