@@ -16,11 +16,12 @@ module.exports = (sequelize, DataTypes) => {
   nftdata.init({
     nft_name: DataTypes.STRING,
     token_standard: DataTypes.STRING,
-    nft_contract_address: DataTypes.STRING,
+    nft_contract_address: DataTypes.STRING, //Unique key candidate 1
     supply_count: DataTypes.INTEGER,
     max_user_tokens: DataTypes.INTEGER,
+    claimed_count: DataTypes.INTEGER,
     token_id: DataTypes.STRING,
-    token_uri: DataTypes.STRING,
+    token_uri: DataTypes.STRING,  //Unique key candidate 2
     image_url: DataTypes.STRING,
     price: DataTypes.STRING,
     current_owner: DataTypes.STRING,    //current owner is not needed.

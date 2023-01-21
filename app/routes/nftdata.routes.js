@@ -9,14 +9,8 @@ module.exports = app => {
     // Get one NFT
     router.post("/querynft", nftdata.queryListedNft);
 
-    // List my listed NFT for my profile
-    router.get("/listmynfts", nftdata.listMyNfts);
-
-    // List my sold NFT for my profile
-    router.get("/mysoldnfts", nftdata.mySoldNfts);
-
     // Mint new NFT
-    router.post("/newmint", nftdata.newMint);
+    router.post("/newnft", nftdata.newNFTCreate);
 
     // New mint update to database
     router.post("/buynft", nftdata.buyNFts);
@@ -26,6 +20,9 @@ module.exports = app => {
 
     // List All NFTs Bought by a user
     router.post("/user/purchases", nftdata.listPurchaseNFTsByUser);
+
+    // List my sold NFT for my profile
+    router.post("/user/sold", nftdata.listSoldNFTsByUser);
 
     // Delete all minting data - NFTRecord
     router.get("/deleteallminted", nftdata.deleteMintingData);

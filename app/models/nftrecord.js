@@ -20,7 +20,9 @@ module.exports = (sequelize, DataTypes) => {
   nftrecord.init({
     nft_id: DataTypes.INTEGER,
     nft_contract_address: DataTypes.STRING,
+    creator_address: DataTypes.STRING,
     token_uri: DataTypes.STRING,
+    image_url: DataTypes.STRING,
     token_ids: DataTypes.STRING,
     buyer_address: DataTypes.STRING
   }, {

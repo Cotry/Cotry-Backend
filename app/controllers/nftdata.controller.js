@@ -27,7 +27,7 @@ exports.listAllNfts = async (req, res) => {
             where: {
                 listing_status: true
             },
-            attributes: ['nft_name', 'token_uri', 'image_url', 'price', 'creator_name', 'creator_address', 'description', 'nft_contract_address', 'supply_count', 'u_promocode', 'u_merchandise', 'u_eventtickets', 'u_whiltelist', 'u_gift'],
+            attributes: ['nft_name', 'token_uri', 'image_url', 'price', 'creator_name', 'creator_address', 'description', 'nft_contract_address', 'supply_count', 'claimed_count', 'u_promocode', 'u_merchandise', 'u_eventtickets', 'u_whiltelist', 'u_gift'],
         })
         .then((items) => {
             res.send(items);
@@ -94,7 +94,7 @@ exports.queryNft = async (req, res) => {
 };
 
 //create the new nft item entry in nftdata
-exports.newMint = async (req, res) => {
+exports.newNFTCreate = async (req, res) => {
     //storing data
     //improve code by destructuring
     const NFT_NAME = req.body.nft_name;
@@ -117,11 +117,12 @@ exports.newMint = async (req, res) => {
     const WHITELIST = req.body.u_whiltelist;
     const GIFT = req.body.u_gift;
 
-    const newNFTMintItem = {
+    const newNFTCreateItem = {
         nft_name: NFT_NAME,
         token_standard: TOKEN_STANDARD,
         nft_contract_address: NFT_CONTRACT_ADDRESS,
         supply_count: SUPPLY_COUNT,
+        claimed_count: 0,
         max_user_tokens: MAX_USER_TOKENS,
         token_id: TOKEN_ID,
         token_uri: TOKEN_URI,
@@ -140,7 +141,7 @@ exports.newMint = async (req, res) => {
     };
 
     await NFTData
-        .create(newNFTMintItem)
+        .create(newNFTCreateItem)
         .then(data => {
             //send this unique string in body of response, and continue login process
             res.send({
@@ -165,8 +166,10 @@ exports.buyNFts = async (req, res) => {
 
     //improve code by destructuring
     const NFT_CONTRACT_ADDRESS = req.body.nft_contract_address;
+    const CREATOR_ADDRESS = req.body.creator_address;
     const TOKEN_URI = req.body.token_uri;
-    const TOKENS_PURCHASED = req.body.tokens_purchased;
+    const IMAGE_URL = req.body.image_url;
+    // const TOKENS_PURCHASED = req.body.tokens_purchased; //as such there is no use of this entry but still keeping incase needed.
     const BUYER_ADDRESS = req.body.buyer_address;
     const TOKEN_IDS = req.body.token_ids;
     let nft_id_nftdata = 0; //PENIDNG: need to have a logic for this
@@ -175,13 +178,13 @@ exports.buyNFts = async (req, res) => {
     let newNFTMintItem = {
         nft_id: nft_id_nftdata,
         nft_contract_address: NFT_CONTRACT_ADDRESS,
+        creator_address: CREATOR_ADDRESS,
         token_uri: TOKEN_URI,
-        tokens_purchased: TOKENS_PURCHASED,
+        image_url: IMAGE_URL,
+        // tokens_purchased: TOKENS_PURCHASED,
         buyer_address: BUYER_ADDRESS,
-        tokens_ids: TOKEN_IDS,
+        token_ids: TOKEN_IDS,
     };
-
-    console.log("\n Reached Here !!! \n");
 
     //update the nftrecord about the newly minted tokens.
     await NFTRecord
@@ -197,7 +200,18 @@ exports.buyNFts = async (req, res) => {
                 //then we only need to update the token_ids
                 //Security issue: PENDING
                 //I am assuming that the frontend gives me the exhaustive list of tokens ownned by the user.
-                await entry.update({ tokens_ids: newNFTMintItem.tokens_ids });
+
+                await entry.update({ token_ids: newNFTMintItem.token_ids });
+
+                // await NFTRecord
+                //     .update({ tokens_ids: newNFTMintItem.tokens_ids }, {
+                //         where: {
+                //             nft_contract_address: newNFTMintItem.nft_contract_address,
+                //             token_uri: newNFTMintItem.token_uri,
+                //             buyer_address: newNFTMintItem.buyer_address
+                //         }
+                //     })
+                //     .then((result) => { console.log("\nThe records are updated: ", result, "\n"); });
             } else {
                 //if no entry then create a new record.
                 await NFTRecord
@@ -216,26 +230,29 @@ exports.buyNFts = async (req, res) => {
                         });
                     });
             }
+
+            //query the marketplace and get the count
+
+            // and update the claimed count in NFTData.
+            NFTData
+                .findOne({
+                    where: {
+                        //these both are enough to uniquely identify nft
+                        nft_contract_address: newNFTMintItem.nft_contract_address,
+                        token_uri: newNFTMintItem.token_uri,
+                    }
+                })
+                .then(async (entry) => {
+                    const newCount = newNFTMintItem.token_ids.split(",").length - 1 + entry.claimed_count;
+                    // console.log("\nThe new count is: ", newCount, "\n");
+                    await entry.update({ claimed_count: newCount });
+                });
+
         })
         .catch((err) => {
             res.status(500).send({
                 message:
                     err.message || "Some error occurred while updating the backend database about the new NFT purchase."
-            });
-        });
-};
-
-
-exports.listAllPurchaseNFTs = async (req, res) => {
-    await NFTRecord
-        .findAll()
-        .then((items) => {
-            res.send(items);
-        })
-        .catch((err) => {
-            res.status(500).send({
-                message: "There was some error to fetch nft minting data",
-                error: err
             });
         });
 };
@@ -263,130 +280,103 @@ exports.listPurchaseNFTsByUser = async (req, res) => {
         });
 };
 
-
-//list my listed NFT items
-exports.listMyNfts = async (req, res) => {
-    //check if session is authenticated.
-    //if yes then query the session id to get the wallet address.
-    //and then get the nfts owned
-
-    const CURRENT_SESSION_ID = req.cookies.vericheck;
-
-    let isexpired = false;
-    let loggedin = false;
-
-    //input validation of session_id is PENDING
-    await LoginVerify
-        .findOne({ where: { session_id: CURRENT_SESSION_ID } })
-        .then(async (entry) => {
-            if (entry !== null) {
-                //if session is expired
-                if (entry.expires_at < Date.now()) {
-                    // console.log("The session expire value is: ", expiryTime);
-                    // console.log("The current time value is: ", Date.now());
-                    isexpired = true;
-                }
-
-                //if user is already logged in
-                if (entry.auth_status && !isexpired) {
-                    loggedin = true;
-
-                    //get list of all NFTs
-                    await NFTData
-                        .findAll({
-                            where: {
-                                wallet_address: entry.wallet_address,
-                                listing_status: true
-                            },
-                            attributes: ['nft_name', 'token_uri', 'image_url', 'price', 'creator_name', 'creator_address', 'description', 'nft_contract_address', 'supply_count', 'u_promocode', 'u_merchandise', 'u_eventtickets', 'u_whiltelist', 'u_gift'],
-                        })
-                        .then((items) => {
-                            res.send(items);
-                        })
-                        .catch((err) => {
-                            res.status(500).send({
-                                message: "There was some error to fetch nftdata records",
-                                error: err
-                            });
-                        });
-                } else {
-                    //user needs to login again
-                    //PENDING
-
-                }
-            } else {
-                //user needs to login
-                //PENDING
-            }
+exports.listAllPurchaseNFTs = async (req, res) => {
+    await NFTRecord
+        .findAll()
+        .then((items) => {
+            res.send(items);
+        })
+        .catch((err) => {
+            res.status(500).send({
+                message: "There was some error to fetch nft minting data of all users",
+                error: err
+            });
         });
-
-    //user already authenticated
-    if (loggedin) {
-        //
-    }
 };
 
-//list my NFT items
-exports.mySoldNfts = async (req, res) => {
-    //check if session is authenticated.
-    //if yes then query the session id to get the wallet address.
-    //and then get the nfts owned
+exports.listSoldNFTsByUser = async (req, res) => {
+    const SELLER_ADDRESS = req.body.wallet_address;
 
-    const CURRENT_SESSION_ID = req.cookies.vericheck;
+    console.log("Wallet seller address: ", SELLER_ADDRESS);
 
-    let isexpired = false;
-    let loggedin = false;
-
-    //input validation of session_id is PENDING
-    await LoginVerify
-        .findOne({ where: { session_id: CURRENT_SESSION_ID } })
-        .then(async (entry) => {
-            if (entry !== null) {
-                //if session is expired
-                if (entry.expires_at < Date.now()) {
-                    // console.log("The session expire value is: ", expiryTime);
-                    // console.log("The current time value is: ", Date.now());
-                    isexpired = true;
-                }
-
-                //if user is already logged in
-                if (entry.auth_status && !isexpired) {
-                    loggedin = true;
-
-                    //get list of all NFTs
-                    await NFTData
-                        .findAll({
-                            where: {
-                                wallet_address: entry.wallet_address,
-                                listing_status: false
-                            },
-                            attributes: ['nft_name', 'token_uri', 'image_url', 'price', 'creator_name', 'creator_address', 'description', 'nft_contract_address', 'supply_count', 'u_promocode', 'u_merchandise', 'u_eventtickets', 'u_whiltelist', 'u_gift'],
-                        })
-                        .then((items) => {
-                            res.send(items);
-                        })
-                        .catch((err) => {
-                            res.status(500).send({
-                                message: "There was some error to fetch nftdata records",
-                                error: err
-                            });
-                        });
-                } else {
-                    //user needs to login again
-                    //PENDING
-
-                }
-            } else {
-                //user needs to login
-                //PENDING
+    await NFTRecord
+        .findAll({
+            where: {
+                creator_address: SELLER_ADDRESS
             }
+        })
+        .then((items) => {
+            res.send(items);
+        })
+        .catch((err) => {
+            res.status(500).send({
+                message: "There was some error to fetch nft minting data for the user",
+                error: err
+            });
         });
-
-    //user already authenticated
-    if (loggedin) {
-        //
-    }
 };
+
+// //list my NFT items
+// exports.listSoldNFTsByUser = async (req, res) => {
+//     //check if session is authenticated.
+//     //if yes then query the session id to get the wallet address.
+//     //and then get the nfts owned
+
+//     const CURRENT_SESSION_ID = req.cookies.vericheck;
+
+//     let isexpired = false;
+//     let loggedin = false;
+
+//     //input validation of session_id is PENDING
+//     await LoginVerify
+//         .findOne({ where: { session_id: CURRENT_SESSION_ID } })
+//         .then(async (entry) => {
+//             if (entry !== null) {
+//                 //if session is expired
+//                 if (entry.expires_at < Date.now()) {
+//                     // console.log("The session expire value is: ", expiryTime);
+//                     // console.log("The current time value is: ", Date.now());
+//                     isexpired = true;
+//                 }
+
+//                 //if user is already logged in
+//                 if (entry.auth_status && !isexpired) {
+//                     loggedin = true;
+
+//                     //get list of all NFTs
+//                     await NFTData
+//                         .findAll({
+//                             where: {
+//                                 wallet_address: entry.wallet_address,
+//                                 listing_status: false
+//                             },
+//                             attributes: ['nft_name', 'token_uri', 'image_url', 'price', 'creator_name', 'creator_address', 'description', 'nft_contract_address', 'supply_count', 'u_promocode', 'u_merchandise', 'u_eventtickets', 'u_whiltelist', 'u_gift'],
+//                         })
+//                         .then((items) => {
+//                             res.send(items);
+//                         })
+//                         .catch((err) => {
+//                             res.status(500).send({
+//                                 message: "There was some error to fetch nftdata records",
+//                                 error: err
+//                             });
+//                         });
+//                 } else {
+//                     //user needs to login again
+//                     //PENDING
+
+//                 }
+//             } else {
+//                 //user needs to login
+//                 //PENDING
+//             }
+//         });
+
+//     //user already authenticated
+//     if (loggedin) {
+//         //
+//     }
+// };
 
 // CAUTION: should not be enabled in production
 exports.deleteMintingData = async (req, res) => {

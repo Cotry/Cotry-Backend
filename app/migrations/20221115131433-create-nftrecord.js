@@ -14,6 +14,12 @@ module.exports = {
       nft_contract_address: {
         type: Sequelize.STRING
       },
+      creator_address: {
+        type: Sequelize.STRING
+      },
+      image_url: {
+        type: Sequelize.STRING
+      },
       token_uri: {
         type: Sequelize.STRING
       },
